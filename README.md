@@ -21,7 +21,7 @@ This is experimental and not published yet. Don't use it in production yet.
 
 ```
 # added to see how an installation might look like
-npm install @rescript-lang/rescript-promise
+npm install @rescript/rescript-promise
 ```
 
 ## Usage
