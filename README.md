@@ -11,17 +11,37 @@ This is a proposal for a better ReScript promise binding that unfortunately **is
 - Allows nested promises (no `resolve` call on each `then`)
 - Has small runtime overhead for fixing nested promises
 - No rejection tracking or other complex type hackery
-- No special utilities (try to stick to official Promise apis)
+- No special utilities (less things to maintain)
 
 This binding aims to be as close to the JS Promise API as possible.
 
-## Installation (not published)
+## Installation (not published yet)
 
 This is experimental and not published yet. Don't use it in production yet.
 
 ```
 # added to see how an installation might look like
-npm install @rescript/rescript-promise
+npm install @rescript/rescript-promise --save
+```
+
+Until npm release, use install directly from GH instead:
+
+```
+# via npm
+npm i git+https://github.com/ryyppy/rescript-promise.git --save
+
+# via yarn
+yarn add ryyppy/rescript-promise
+```
+
+Add `rescript-promise` as a dependency in your `bsconfig.json`:
+
+```json
+{
+  "bs-dependencies": [
+    "rescript-promise"
+  ]
+}
 ```
 
 ## Usage
