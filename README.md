@@ -38,7 +38,6 @@ let p2 = Promise.resolve("some value")
 let p3 = Promise.reject("some rejection")
 ```
 
-
 **Chain promises:**
 
 ```rescript
@@ -53,7 +52,7 @@ let p = {
 
 **Chain nested promises:**
 
-```
+```rescript
 type user = {"name": string}
 type comment = string
 @val external queryComments: string => Js.Promise.t<array<comment>> = "API.queryComments"
@@ -75,7 +74,7 @@ let p = {
 }
 ```
 
-**Catch promise errors: **
+**Catch promise errors:**
 
 ```rescript
 exception MyError(string)
