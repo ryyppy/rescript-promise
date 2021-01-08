@@ -155,7 +155,13 @@ let _ = {
 
   all([p1, p2, p3])->then(arr => {
     // [ [ 3, 'is Anna' ], [ 2, 'myName' ], [ 1, 'Hi' ] ]
-    Js.log(arr)
+    Belt.Array.map(arr, ((place, name)) => {
+      Js.log(`Place ${Belt.Int.toString(place)} => ${name}`)
+    })
+    // Output
+    // Place 3 => is Anna
+    // Place 2 => myName
+    // Place 1 => Hi
   })
 }
 ```
@@ -177,7 +183,8 @@ let _ = {
   let promises = [racer(1000, "Turtle"), racer(500, "Hare"), racer(100, "Eagle")]
 
   race(promises)->then(winner => {
-    Js.log(winner)
+    Js.log("Congrats: " ++ winner)
+    // Congrats: Eagle
   })
 }
 ```

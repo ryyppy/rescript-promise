@@ -3,6 +3,7 @@
 
 var Js_exn = require("bs-platform/lib/js/js_exn.js");
 var $$Promise = require("../src/Promise.js");
+var Belt_Array = require("bs-platform/lib/js/belt_Array.js");
 var Caml_exceptions = require("bs-platform/lib/js/caml_exceptions.js");
 
 var MyError = Caml_exceptions.create("PromiseTest.MyError");
@@ -62,8 +63,10 @@ $$Promise.$$then($$Promise.all([
           p2,
           p3
         ]), (function (arr) {
-        console.log(arr);
-        
+        return Belt_Array.map(arr, (function (param) {
+                      console.log("Place " + String(param[0]) + " => " + param[1]);
+                      
+                    }));
       }));
 
 function racer(ms, name) {
@@ -82,7 +85,7 @@ var promises = [
 ];
 
 $$Promise.$$then(Promise.race(promises), (function (winner) {
-        console.log(winner);
+        console.log("Congrats: " + winner);
         
       }));
 
