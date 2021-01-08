@@ -176,4 +176,4 @@ let _ = {
 }
 ```
 
-See the [tests](../tests) for more usage examples. 
+See the [README](./README.md) and [tests](./tests) for more examples. 
