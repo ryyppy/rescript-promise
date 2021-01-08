@@ -28,7 +28,7 @@ Until npm release, use install directly from GH instead:
 
 ```
 # via npm
-npm i git+https://github.com/ryyppy/rescript-promise.git --save
+npm install git+https://github.com/ryyppy/rescript-promise.git --save
 
 # via yarn
 yarn add ryyppy/rescript-promise
@@ -43,6 +43,8 @@ Add `rescript-promise` as a dependency in your `bsconfig.json`:
   ]
 }
 ```
+
+This will expose a global `Promise` module (don't worry, it will not mess with your existing `Js.Promise` code).
 
 ## Usage
 
@@ -208,7 +210,6 @@ let _ = {
   })
 }
 ```
-
 
 ## Development
 
