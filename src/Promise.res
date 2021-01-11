@@ -1,6 +1,8 @@
 type t<+'a> = Js.Promise.t<'a>
 type error = Js.Promise.error
 
+exception JsError(Js.Exn.t)
+
 %%bs.raw(`
 function PromiseBox(p) {
     this.nested = p;
@@ -28,16 +30,18 @@ function _make(executor) {
 function _resolve(value) {
     return Promise.resolve(box(value));
 };
+
 function _flatThen(promise, callback) {
     return promise.then(function (value) {
         return callback(unbox(value));
     });
 };
+
 function _then(promise, callback) {
-  return flatThen(promise, function(value) {
-    return resolve(callback(value));
-  });
-}
+    return promise.then(function (value) {
+        return _resolve(callback(unbox(value)));
+    });
+};
 `)
 
 @bs.val
@@ -45,6 +49,18 @@ external unbox: 'a => 'a = "unbox"
 
 @bs.val
 external make: ((@bs.uncurry (. 'a) => unit, (. 'e) => unit) => unit) => t<'a> = "_make"
+
+external unsafeToExn: error => exn = "%identity"
+external unsafeToJsExn: error => Js.Exn.t = "%identity"
+
+let handleError = e => {
+  /* Js.Exn.unsafeAnyToExn(e) */
+  if unsafeToExn(e)->Js.Exn.isCamlExceptionOrOpenVariant {
+    unsafeToExn(e)
+  } else {
+    JsError(unsafeToJsExn(e))
+  }
+}
 
 @bs.val
 external resolve: 'a => t<'a> = "_resolve"
@@ -61,7 +77,7 @@ external flatThen: (t<'a>, 'a => t<'b>) => t<'b> = "_flatThen"
 external then: (t<'a>, 'a => 'b) => t<'b> = "_then"
 
 @bs.scope("Promise") @bs.val
-external reject: 'e => t<_> = "reject"
+external reject: exn => t<_> = "reject"
 
 @bs.scope("Promise") @bs.val
 external jsAll: 'a => 'b = "all"

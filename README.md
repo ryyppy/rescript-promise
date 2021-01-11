@@ -57,7 +57,9 @@ let p1 = Promise.make((resolve, _reject) => {
 
 let p2 = Promise.resolve("some value")
 
-let p3 = Promise.reject("some rejection")
+// You can only reject `exn` values for streamlined catch handling
+exception MyOwnError(string)
+let p3 = Promise.reject(MyOwnError("some rejection"))
 ```
 
 **Chain promises:**
@@ -101,8 +103,6 @@ let p = {
 ```rescript
 exception MyError(string)
 
-external promiseErrToExn: Js.Promise.error => exn = "%identity"
-
 let p = {
   open Promise
 
@@ -111,9 +111,10 @@ let p = {
     Js.log("this should not be reached: " ++ str)
   })
   ->catch(e => {
-    switch promiseErrToExn(e) {
+    // Promise.handleError: error => exn
+    switch handleError(e) {
     | MyError(str) => Js.log("found MyError: " ++ str)
-    | _ => Js.log("Anything else: ")
+    | _ => Js.log("Anything else")
     }
   })
 }
@@ -123,8 +124,6 @@ let p = {
 
 
 ```rescript
-external promiseErrToJsError: Js.Promise.error => Js.Exn.t = "%identity"
-
 let p = {
   open Promise
 
@@ -137,9 +136,12 @@ let p = {
     causeErr()
   })
   ->catch(e => {
-    switch promiseErrToJsError(e)->Js.Exn.message {
-    | Some(str) => Js.log("Promise error occurred: " ++ str)
-    | _ => Js.log("Anything else")
+    switch handleError(e) {
+      | JsError(obj) =>
+        switch Js.Exn.message(obj) {
+          | Some(msg) => Js.log("Some JS error msg: " ++ msg)
+          | None => Js.log("Must be some non-error value")
+        }
     }
   })
 }
@@ -223,7 +225,7 @@ npm run dev
 
 ## Run Test
 
-These are not proper tests yet, but you can run the scripts like this:
+Runs all tests
 
 ```
 node tests/PromiseTest.js

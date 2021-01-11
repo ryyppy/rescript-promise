@@ -4,13 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node tests/PromiseTest.js",
     "dev": "bsb -make-world -w"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@babel/code-frame": "^7.12.11",
     "bs-platform": "8.4.2"
   }
 }

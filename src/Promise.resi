@@ -1,10 +1,20 @@
 type t<+'a> = Js.Promise.t<'a>
 type error = Js.Promise.error
 
+// Not a fan of this extra exception
+// ideally we'd be able to create a Js.Exn.Error
+// value instead
+//
+// Created a PR for this
+// https://github.com/rescript-lang/rescript-compiler/pull/4905
+exception JsError(Js.Exn.t)
+
+let handleError: error => exn
+
 let resolve: 'a => t<'a>
 
 @bs.scope("Promise") @bs.val
-external reject: 'e => t<_> = "reject"
+external reject: exn => t<_> = "reject"
 
 let make: (((. 'a) => unit, (. 'e) => unit) => unit) => t<'a>
 

@@ -1,120 +1,4 @@
-exception MyError(string)
-
-external promiseErrToExn: Js.Promise.error => exn = "%identity"
-
-let p = {
-  open Promise
-
-  Promise.reject(MyError("test"))
-  ->then(str => {
-    Js.log("this should not be reached: " ++ str)
-  })
-  ->catch(e => {
-    switch promiseErrToExn(e) {
-    | MyError(str) => Js.log("found MyError: " ++ str)
-    | _ => Js.log("Anything else: ")
-    }
-  })
-}
-
-external promiseErrToJsError: Js.Promise.error => Js.Exn.t = "%identity"
-let p = {
-  open Promise
-
-  let causeErr = () => {
-    Js.Exn.raiseError("Some JS error")
-  }
-
-  Promise.resolve()
-  ->then(_ => {
-    causeErr()
-  })
-  ->catch(e => {
-    switch promiseErrToJsError(e)->Js.Exn.message {
-    | Some(str) => Js.log("Promise error occurred: " ++ str)
-    | _ => Js.log("Anything else")
-    }
-  })
-}
-
-let _ = {
-  open Promise
-
-  let place = ref(0)
-
-  let delayedMsg = (ms, msg) => {
-    Promise.make((resolve, _) => {
-      Js.Global.setTimeout(() => {
-        place := place.contents + 1
-        resolve(.(place.contents, msg))
-      }, ms)->ignore
-    })
-  }
-
-  let p1 = delayedMsg(1000, "is Anna")
-  let p2 = delayedMsg(500, "myName")
-  let p3 = delayedMsg(100, "Hi")
-
-  all([p1, p2, p3])->then(arr => {
-    // [ [ 3, 'is Anna' ], [ 2, 'myName' ], [ 1, 'Hi' ] ]
-    Belt.Array.map(arr, ((place, name)) => {
-      Js.log(`Place ${Belt.Int.toString(place)} => ${name}`)
-    })
-    // Output
-    // Place 3 => is Anna
-    // Place 2 => myName
-    // Place 1 => Hi
-  })
-}
-
-let _ = {
-  open Promise
-
-  let racer = (ms, name) => {
-    Promise.make((resolve, _) => {
-      Js.Global.setTimeout(() => {
-        resolve(. name)
-      }, ms)->ignore
-    })
-  }
-
-  let promises = [racer(1000, "Turtle"), racer(500, "Hare"), racer(100, "Eagle")]
-
-  race(promises)->then(winner => {
-    Js.log("Congrats: " ++ winner)
-  })
-}
-
-let _ = {
-  open Promise
-  make((resolve, _reject) => {
-    resolve(. 1)
-  })
-  ->flatThen(foo => {
-    Js.log(foo + 1)
-
-    let other = resolve("This is working")
-
-    other
-  })
-  ->then(o => {
-    Js.log("Message received: " ++ o)
-
-    "test foo"
-  })
-  ->then(s => {
-    Js.log(s ++ " is a string")
-  })
-  ->ignore
-}
-
-let racer = {
-  open Promise
-  race([resolve(3), resolve(2)])->then(r => {
-    Js.log2("winner: ", r)
-  })
-}
-
+/*
 let foo = {
   open Promise
 
@@ -140,20 +24,234 @@ let interop = {
     p->Promise.then(msg => Js.log(msg))
   })
 }
-
-/*
-This is an example that breaks
-
-let controlGroup = {
-  open Promise2
-
-  make((resolve, _) => resolve(. Promise2.resolve("actual value")))
-  ->then(p => {
-    p->then(m => {
-      Js.log(m)
-      resolve(ignore)
-    })
-  })
-  ->ignore
-}
 */
+
+exception TestError(string)
+
+let fail = msg => {
+  Js.Exn.raiseError(msg)
+}
+
+let equal = (a, b) => {
+  a == b
+}
+
+let creationTest = () => {
+  /* Test.run(__POS_OF__("Create a promise"), ) */
+
+  /* let p1 = Promise.resolve() */
+  ()
+}
+
+module ThenChaining = {
+  // A promise should be able to return a nested
+  // Promise and also flatten it to ease the access
+  // to the actual value
+  let testFlatThen = () => {
+    open Promise
+    resolve(1)
+    ->flatThen(first => {
+      resolve(first + 1)
+    })
+    ->then(value => {
+      Test.run(__POS_OF__("Should be 2"), value, equal, 2)
+    })
+  }
+
+  // Promise.then should allow both, non-promise and
+  // promise values as a return value and correctly
+  // interpret the value in the chained then call
+  let testThen = () => {
+    open Promise
+
+    resolve(1)
+    ->then(_ => {
+      "simple string"
+    })
+    ->then(str => {
+      Test.run(__POS_OF__("Should be 'simple string'"), str, equal, "simple string")
+
+      resolve(str)
+    })
+    ->then(p => {
+      // Here we are explicitly accessing the promise without flatThen
+      p->then(str => {
+        Test.run(__POS_OF__("Should still be simple string"), str, equal, "simple string")
+      })
+    })
+  }
+
+  let runTests = () => {
+    testFlatThen()->ignore
+    testThen()->ignore
+  }
+}
+
+module Rejection = {
+  // Should gracefully handle a exn passed via reject()
+  let testExnRejection = () => {
+    let cond = "Expect rejection to contain a TestError"
+    open Promise
+
+    TestError("oops")
+    ->reject
+    ->catch(e => {
+      Test.run(__POS_OF__(cond), handleError(e), equal, TestError("oops"))
+    })
+    ->ignore
+  }
+
+  let runTests = () => {
+    testExnRejection()->ignore
+  }
+}
+
+module Catching = {
+  let asyncParseFail: unit => Js.Promise.t<string> = %raw(`
+  function() {
+    return new Promise((resolve) => {
+      var result = JSON.parse("{..");
+      return resolve(result);
+    })
+  }
+  `)
+
+  // Should correctly capture an JS error thrown within
+  // a Promise `then` function
+  let testExternalPromiseThrow = () => {
+    open Promise
+
+    asyncParseFail()->catch(e => {
+      let success = switch handleError(e) {
+      | JsError(err) => Js.Exn.message(err) == Some("Unexpected token . in JSON at position 1")
+      | _ => false
+      }
+
+      Test.run(__POS_OF__("Should be a parser error with Unexpected token ."), success, equal, true)
+    })
+  }
+
+  // Should correctly capture an exn thrown in a Promise
+  // `then` function
+  let testExnThrow = () => {
+    open Promise
+
+    resolve()
+    ->then(_ => {
+      raise(TestError("Thrown exn"))
+    })
+    ->catch(e => {
+      let isTestErr = switch handleError(e) {
+      | TestError("Thrown exn") => true
+      | _ => false
+      }
+      Test.run(__POS_OF__("Should be a TestError"), isTestErr, equal, true)
+    })
+  }
+
+  // Should correctly capture a JS error raised with Js.Exn.raiseError
+  // within a Promise then function
+  let testRaiseErrorThrow = () => {
+    open Promise
+
+    let causeErr = () => {
+      Js.Exn.raiseError("Some JS error")
+    }
+
+    resolve()
+    ->then(_ => {
+      causeErr()
+    })
+    ->catch(e => {
+      let isTestErr = switch handleError(e) {
+      | JsError(err) => Js.Exn.message(err) == Some("Some JS error")
+      | _ => false
+      }
+      Test.run(__POS_OF__("Should be some JS error"), isTestErr, equal, true)
+    })
+  }
+
+  // Should recover a rejection and use then to
+  // access the value
+  let thenAfterCatch = () => {
+    open Promise
+    resolve()
+    ->flatThen(_ => {
+      // NOTE: if then is used, there will be an uncaught
+      // error
+      reject(TestError("some rejected value"))
+    })
+    ->catch(e => {
+      let s = switch handleError(e) {
+      | TestError("some rejected value") => "success"
+      | _ => "not a test error"
+      }
+      s
+    })
+    ->then(msg => {
+      Test.run(__POS_OF__("Should be success"), msg, equal, "success")
+    })
+  }
+
+  let runTests = () => {
+    testExternalPromiseThrow()->ignore
+    testExnThrow()->ignore
+    testRaiseErrorThrow()->ignore
+    thenAfterCatch()->ignore
+  }
+}
+
+module Concurrently = {
+  let testParallel = () => {
+    open Promise
+
+    let place = ref(0)
+
+    let delayedMsg = (ms, msg) => {
+      Promise.make((resolve, _) => {
+        Js.Global.setTimeout(() => {
+          place := place.contents + 1
+          resolve(.(place.contents, msg))
+        }, ms)->ignore
+      })
+    }
+
+    let p1 = delayedMsg(1000, "is Anna")
+    let p2 = delayedMsg(500, "myName")
+    let p3 = delayedMsg(100, "Hi")
+
+    all([p1, p2, p3])->then(arr => {
+      let exp = [(3, "is Anna"), (2, "myName"), (1, "Hi")]
+      Test.run(__POS_OF__("Should have correct placing"), arr, equal, exp)
+    })
+  }
+
+  let testRace = () => {
+    open Promise
+
+    let racer = (ms, name) => {
+      Promise.make((resolve, _) => {
+        Js.Global.setTimeout(() => {
+          resolve(. name)
+        }, ms)->ignore
+      })
+    }
+
+    let promises = [racer(1000, "Turtle"), racer(500, "Hare"), racer(100, "Eagle")]
+
+    race(promises)->then(winner => {
+      Test.run(__POS_OF__("Eagle should win"), winner, equal, "Eagle")
+    })
+  }
+
+  let runTests = () => {
+    testParallel()->ignore
+    testRace()->ignore
+  }
+}
+
+creationTest()
+ThenChaining.runTests()
+Rejection.runTests()
+Catching.runTests()
+Concurrently.runTests() 
