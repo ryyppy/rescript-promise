@@ -38,9 +38,7 @@ Add `rescript-promise` as a dependency in your `bsconfig.json`:
 
 ```json
 {
-  "bs-dependencies": [
-    "rescript-promise"
-  ]
+  "bs-dependencies": ["rescript-promise"]
 }
 ```
 
@@ -111,8 +109,7 @@ let p = {
     Js.log("this should not be reached: " ++ str)
   })
   ->catch(e => {
-    // Promise.handleError: error => exn
-    switch handleError(e) {
+    switch e {
     | MyError(str) => Js.log("found MyError: " ++ str)
     | _ => Js.log("Anything else")
     }
@@ -121,7 +118,6 @@ let p = {
 ```
 
 **Catch promise errors caused by a thrown JS exception:**
-
 
 ```rescript
 let p = {
@@ -136,7 +132,7 @@ let p = {
     causeErr()
   })
   ->catch(e => {
-    switch handleError(e) {
+    switch e {
       | JsError(obj) =>
         switch Js.Exn.message(obj) {
           | Some(msg) => Js.log("Some JS error msg: " ++ msg)
@@ -154,7 +150,6 @@ let p = {
 
 someAsyncApi()->Promise.then((str) => Js.log(str))
 ```
-
 
 **Running multiple Promises concurrently:**
 
