@@ -76,23 +76,23 @@ var ThenChaining = {
 };
 
 function testExnRejection(param) {
-  Promise.reject({
-          RE_EXN_ID: TestError,
-          _1: "oops"
-        }).catch(function (e) {
-        return Test.run([
-                    [
-                      "PromiseTest.res",
-                      99,
-                      26,
-                      30
-                    ],
-                    "Expect rejection to contain a TestError"
-                  ], $$Promise.handleError(e), equal, {
-                    RE_EXN_ID: TestError,
-                    _1: "oops"
-                  });
-      });
+  $$Promise.$$catch(Promise.reject({
+            RE_EXN_ID: TestError,
+            _1: "oops"
+          }), (function (e) {
+          return Test.run([
+                      [
+                        "PromiseTest.res",
+                        99,
+                        26,
+                        30
+                      ],
+                      "Expect rejection to contain a TestError"
+                    ], e, equal, {
+                      RE_EXN_ID: TestError,
+                      _1: "oops"
+                    });
+        }));
   
 }
 
@@ -114,75 +114,71 @@ var asyncParseFail = (function() {
   });
 
 function testExternalPromiseThrow(param) {
-  return Curry._1(asyncParseFail, undefined).catch(function (e) {
-              var err = $$Promise.handleError(e);
-              var success = err.RE_EXN_ID === $$Promise.JsError ? Caml_obj.caml_equal(err._1.message, "Unexpected token . in JSON at position 1") : false;
-              return Test.run([
-                          [
-                            "PromiseTest.res",
-                            130,
-                            26,
-                            76
-                          ],
-                          "Should be a parser error with Unexpected token ."
-                        ], success, equal, true);
-            });
+  return $$Promise.$$catch(Curry._1(asyncParseFail, undefined), (function (e) {
+                var success = e.RE_EXN_ID === $$Promise.JsError ? Caml_obj.caml_equal(e._1.message, "Unexpected token . in JSON at position 1") : false;
+                return Test.run([
+                            [
+                              "PromiseTest.res",
+                              130,
+                              26,
+                              76
+                            ],
+                            "Should be a parser error with Unexpected token ."
+                          ], success, equal, true);
+              }));
 }
 
 function testExnThrow(param) {
-  return $$Promise.$$then($$Promise.resolve(undefined), (function (param) {
-                  throw {
-                        RE_EXN_ID: TestError,
-                        _1: "Thrown exn",
-                        Error: new Error()
-                      };
-                })).catch(function (e) {
-              var match = $$Promise.handleError(e);
-              var isTestErr = match.RE_EXN_ID === TestError && match._1 === "Thrown exn" ? true : false;
-              return Test.run([
-                          [
-                            "PromiseTest.res",
-                            148,
-                            26,
-                            49
-                          ],
-                          "Should be a TestError"
-                        ], isTestErr, equal, true);
-            });
+  return $$Promise.$$catch($$Promise.$$then($$Promise.resolve(undefined), (function (param) {
+                    throw {
+                          RE_EXN_ID: TestError,
+                          _1: "Thrown exn",
+                          Error: new Error()
+                        };
+                  })), (function (e) {
+                var isTestErr = e.RE_EXN_ID === TestError && e._1 === "Thrown exn" ? true : false;
+                return Test.run([
+                            [
+                              "PromiseTest.res",
+                              148,
+                              26,
+                              49
+                            ],
+                            "Should be a TestError"
+                          ], isTestErr, equal, true);
+              }));
 }
 
 function testRaiseErrorThrow(param) {
-  return $$Promise.$$then($$Promise.resolve(undefined), (function (param) {
-                  return Js_exn.raiseError("Some JS error");
-                })).catch(function (e) {
-              var err = $$Promise.handleError(e);
-              var isTestErr = err.RE_EXN_ID === $$Promise.JsError ? Caml_obj.caml_equal(err._1.message, "Some JS error") : false;
-              return Test.run([
-                          [
-                            "PromiseTest.res",
-                            170,
-                            26,
-                            51
-                          ],
-                          "Should be some JS error"
-                        ], isTestErr, equal, true);
-            });
+  return $$Promise.$$catch($$Promise.$$then($$Promise.resolve(undefined), (function (param) {
+                    return Js_exn.raiseError("Some JS error");
+                  })), (function (e) {
+                var isTestErr = e.RE_EXN_ID === $$Promise.JsError ? Caml_obj.caml_equal(e._1.message, "Some JS error") : false;
+                return Test.run([
+                            [
+                              "PromiseTest.res",
+                              170,
+                              26,
+                              51
+                            ],
+                            "Should be some JS error"
+                          ], isTestErr, equal, true);
+              }));
 }
 
 function thenAfterCatch(param) {
-  return $$Promise.$$then($$Promise.flatThen($$Promise.resolve(undefined), (function (param) {
-                      return Promise.reject({
-                                  RE_EXN_ID: TestError,
-                                  _1: "some rejected value"
-                                });
-                    })).catch(function (e) {
-                  var match = $$Promise.handleError(e);
-                  if (match.RE_EXN_ID === TestError && match._1 === "some rejected value") {
-                    return "success";
-                  } else {
-                    return "not a test error";
-                  }
-                }), (function (msg) {
+  return $$Promise.$$then($$Promise.$$catch($$Promise.flatThen($$Promise.resolve(undefined), (function (param) {
+                        return Promise.reject({
+                                    RE_EXN_ID: TestError,
+                                    _1: "some rejected value"
+                                  });
+                      })), (function (e) {
+                    if (e.RE_EXN_ID === TestError && e._1 === "some rejected value") {
+                      return "success";
+                    } else {
+                      return "not a test error";
+                    }
+                  })), (function (msg) {
                 return Test.run([
                             [
                               "PromiseTest.res",

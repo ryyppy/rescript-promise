@@ -1,7 +1,10 @@
 type t<+'a> = Js.Promise.t<'a>
-type error = Js.Promise.error
 
+// Will eventually be removed when Js.Exn.Error
+// can be constructed in userspace
+// See:
 exception JsError(Js.Exn.t)
+external unsafeToJsExn: exn => Js.Exn.t = "%identity"
 
 %%bs.raw(`
 function PromiseBox(p) {
@@ -50,18 +53,6 @@ external unbox: 'a => 'a = "unbox"
 @bs.val
 external make: ((@bs.uncurry (. 'a) => unit, (. 'e) => unit) => unit) => t<'a> = "_make"
 
-external unsafeToExn: error => exn = "%identity"
-external unsafeToJsExn: error => Js.Exn.t = "%identity"
-
-let handleError = e => {
-  /* Js.Exn.unsafeAnyToExn(e) */
-  if unsafeToExn(e)->Js.Exn.isCamlExceptionOrOpenVariant {
-    unsafeToExn(e)
-  } else {
-    JsError(unsafeToJsExn(e))
-  }
-}
-
 @bs.val
 external resolve: 'a => t<'a> = "_resolve"
 
@@ -95,7 +86,22 @@ let all5 = (p1, p2, p3, p4, p5) => jsAll((p1, p2, p3, p4, p5))
 let all6 = (p1, p2, p3, p4, p5, p6) => jsAll((p1, p2, p3, p4, p5, p6))
 
 @bs.send
-external catch: (t<'a>, @bs.uncurry (error => 'b)) => t<'b> = "catch"
+external _catch: (t<'a>, @bs.uncurry (exn => 'b)) => t<'b> = "catch"
+
+let catch = (promise, callback) => {
+  _catch(promise, err => {
+    // In future versions, we could use the better version:
+    /* callback(Js.Exn.anyToExnInternal(e)) */
+
+    // for now we need to bring our own JsError type
+    let v = if Js.Exn.isCamlExceptionOrOpenVariant(err) {
+      err
+    } else {
+      JsError(unsafeToJsExn(err))
+    }
+    callback(v)
+  })
+}
 
 @bs.scope("Promise") @bs.val
 external race: array<t<'a>> => t<'a> = "race"

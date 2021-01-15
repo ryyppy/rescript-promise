@@ -96,7 +96,7 @@ module Rejection = {
     TestError("oops")
     ->reject
     ->catch(e => {
-      Test.run(__POS_OF__(cond), handleError(e), equal, TestError("oops"))
+      Test.run(__POS_OF__(cond), e, equal, TestError("oops"))
     })
     ->ignore
   }
@@ -122,7 +122,7 @@ module Catching = {
     open Promise
 
     asyncParseFail()->catch(e => {
-      let success = switch handleError(e) {
+      let success = switch e {
       | JsError(err) => Js.Exn.message(err) == Some("Unexpected token . in JSON at position 1")
       | _ => false
       }
@@ -141,7 +141,7 @@ module Catching = {
       raise(TestError("Thrown exn"))
     })
     ->catch(e => {
-      let isTestErr = switch handleError(e) {
+      let isTestErr = switch e {
       | TestError("Thrown exn") => true
       | _ => false
       }
@@ -163,7 +163,7 @@ module Catching = {
       causeErr()
     })
     ->catch(e => {
-      let isTestErr = switch handleError(e) {
+      let isTestErr = switch e {
       | JsError(err) => Js.Exn.message(err) == Some("Some JS error")
       | _ => false
       }
@@ -182,7 +182,7 @@ module Catching = {
       reject(TestError("some rejected value"))
     })
     ->catch(e => {
-      let s = switch handleError(e) {
+      let s = switch e {
       | TestError("some rejected value") => "success"
       | _ => "not a test error"
       }
@@ -254,4 +254,4 @@ creationTest()
 ThenChaining.runTests()
 Rejection.runTests()
 Catching.runTests()
-Concurrently.runTests() 
+Concurrently.runTests()

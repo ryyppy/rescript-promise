@@ -1,5 +1,4 @@
 type t<+'a> = Js.Promise.t<'a>
-type error = Js.Promise.error
 
 // Not a fan of this extra exception
 // ideally we'd be able to create a Js.Exn.Error
@@ -8,8 +7,6 @@ type error = Js.Promise.error
 // Created a PR for this
 // https://github.com/rescript-lang/rescript-compiler/pull/4905
 exception JsError(Js.Exn.t)
-
-let handleError: error => exn
 
 let resolve: 'a => t<'a>
 
@@ -20,8 +17,7 @@ let make: (((. 'a) => unit, (. 'e) => unit) => unit) => t<'a>
 
 let then: (t<'a>, 'a => 'b) => t<'b>
 
-@bs.send
-external catch: (t<'a>, @bs.uncurry (error => 'b)) => t<'b> = "catch"
+let catch: (t<'a>,  (exn) => 'b) => t<'b>
 
 let flatThen: (t<'a>, 'a => t<'b>) => t<'b>
 
