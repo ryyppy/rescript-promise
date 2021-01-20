@@ -93,11 +93,13 @@ module Rejection = {
     let cond = "Expect rejection to contain a TestError"
     open Promise
 
-    TestError("oops")
-    ->reject
-    ->catch(e => {
-      Test.run(__POS_OF__(cond), e, equal, TestError("oops"))
-    })
+    reject(TestError("oops"))
+    ->fromRejectable(
+      _ => (),
+      e => {
+        Test.run(__POS_OF__(cond), e, equal, TestError("oops"))
+      },
+    )
     ->ignore
   }
 
@@ -107,7 +109,7 @@ module Rejection = {
 }
 
 module Catching = {
-  let asyncParseFail: unit => Js.Promise.t<string> = %raw(`
+  let asyncParseFail: unit => Promise.rejectable<string> = %raw(`
   function() {
     return new Promise((resolve) => {
       var result = JSON.parse("{..");
@@ -117,18 +119,26 @@ module Catching = {
   `)
 
   // Should correctly capture an JS error thrown within
-  // a Promise `then` function
+  // a async process
   let testExternalPromiseThrow = () => {
     open Promise
 
-    asyncParseFail()->catch(e => {
-      let success = switch e {
-      | JsError(err) => Js.Exn.message(err) == Some("Unexpected token . in JSON at position 1")
-      | _ => false
-      }
+    asyncParseFail()->fromRejectable(
+      _ => (),
+      e => {
+        let success = switch e {
+        | JsError(err) => Js.Exn.message(err) == Some("Unexpected token . in JSON at position 1")
+        | _ => false
+        }
 
-      Test.run(__POS_OF__("Should be a parser error with Unexpected token ."), success, equal, true)
-    })
+        Test.run(
+          __POS_OF__("Should be a parser error with Unexpected token ."),
+          success,
+          equal,
+          true,
+        )
+      },
+    )
   }
 
   // Should correctly capture an exn thrown in a Promise
@@ -179,14 +189,19 @@ module Catching = {
     ->flatThen(_ => {
       // NOTE: if then is used, there will be an uncaught
       // error
-      reject(TestError("some rejected value"))
+      reject(TestError("some rejected value"))->fromRejectable(
+        _ => "shouldn't not resolve",
+        e => {
+          switch e {
+          | TestError("some rejected value") => "success"
+          | _ => "not a test error"
+          }
+        },
+      )
     })
-    ->catch(e => {
-      let s = switch e {
-      | TestError("some rejected value") => "success"
-      | _ => "not a test error"
-      }
-      s
+    ->catch(_ => {
+      Test.run(__POS_OF__("catch should not be called here"), false, equal, true)
+      "unreachable"
     })
     ->then(msg => {
       Test.run(__POS_OF__("Should be success"), msg, equal, "success")

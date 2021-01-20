@@ -108,6 +108,10 @@ function $$catch(promise, callback) {
             });
 }
 
+function fromRejectable(promise, successCb, errCb) {
+  return $$catch(_then(promise, successCb), errCb);
+}
+
 function resolve(prim) {
   return _resolve(prim);
 }
@@ -126,6 +130,7 @@ function flatThen(prim, prim$1) {
 
 exports.JsError = JsError;
 exports.resolve = resolve;
+exports.fromRejectable = fromRejectable;
 exports.make = make;
 exports.$$then = $$then;
 exports.$$catch = $$catch;

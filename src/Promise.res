@@ -1,8 +1,6 @@
 type t<+'a> = Js.Promise.t<'a>
+type rejectable<+'a>
 
-// Will eventually be removed when Js.Exn.Error
-// can be constructed in userspace
-// See:
 exception JsError(Js.Exn.t)
 external unsafeToJsExn: exn => Js.Exn.t = "%identity"
 
@@ -68,7 +66,7 @@ external flatThen: (t<'a>, 'a => t<'b>) => t<'b> = "_flatThen"
 external then: (t<'a>, 'a => 'b) => t<'b> = "_then"
 
 @bs.scope("Promise") @bs.val
-external reject: exn => t<_> = "reject"
+external reject: exn => rejectable<_> = "reject"
 
 @bs.scope("Promise") @bs.val
 external jsAll: 'a => 'b = "all"
@@ -101,6 +99,12 @@ let catch = (promise, callback) => {
     }
     callback(v)
   })
+}
+
+external unsafeFromRejectable: rejectable<'a> => t<'a> = "%identity"
+
+let fromRejectable = (promise, successCb, errCb) => {
+  promise->unsafeFromRejectable->then(successCb)->catch(errCb)
 }
 
 @bs.scope("Promise") @bs.val

@@ -76,16 +76,18 @@ var ThenChaining = {
 };
 
 function testExnRejection(param) {
-  $$Promise.$$catch(Promise.reject({
+  $$Promise.fromRejectable(Promise.reject({
             RE_EXN_ID: TestError,
             _1: "oops"
-          }), (function (e) {
+          }), (function (param) {
+          
+        }), (function (e) {
           return Test.run([
                       [
                         "PromiseTest.res",
-                        99,
-                        26,
-                        30
+                        100,
+                        28,
+                        32
                       ],
                       "Expect rejection to contain a TestError"
                     ], e, equal, {
@@ -114,14 +116,16 @@ var asyncParseFail = (function() {
   });
 
 function testExternalPromiseThrow(param) {
-  return $$Promise.$$catch(Curry._1(asyncParseFail, undefined), (function (e) {
+  return $$Promise.fromRejectable(Curry._1(asyncParseFail, undefined), (function (param) {
+                
+              }), (function (e) {
                 var success = e.RE_EXN_ID === $$Promise.JsError ? Caml_obj.caml_equal(e._1.message, "Unexpected token . in JSON at position 1") : false;
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              130,
-                              26,
-                              76
+                              135,
+                              21,
+                              71
                             ],
                             "Should be a parser error with Unexpected token ."
                           ], success, equal, true);
@@ -140,7 +144,7 @@ function testExnThrow(param) {
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              148,
+                              158,
                               26,
                               49
                             ],
@@ -157,7 +161,7 @@ function testRaiseErrorThrow(param) {
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              170,
+                              180,
                               26,
                               51
                             ],
@@ -168,21 +172,34 @@ function testRaiseErrorThrow(param) {
 
 function thenAfterCatch(param) {
   return $$Promise.$$then($$Promise.$$catch($$Promise.flatThen($$Promise.resolve(undefined), (function (param) {
-                        return Promise.reject({
-                                    RE_EXN_ID: TestError,
-                                    _1: "some rejected value"
-                                  });
-                      })), (function (e) {
-                    if (e.RE_EXN_ID === TestError && e._1 === "some rejected value") {
-                      return "success";
-                    } else {
-                      return "not a test error";
-                    }
+                        return $$Promise.fromRejectable(Promise.reject({
+                                        RE_EXN_ID: TestError,
+                                        _1: "some rejected value"
+                                      }), (function (param) {
+                                      return "shouldn't not resolve";
+                                    }), (function (e) {
+                                      if (e.RE_EXN_ID === TestError && e._1 === "some rejected value") {
+                                        return "success";
+                                      } else {
+                                        return "not a test error";
+                                      }
+                                    }));
+                      })), (function (param) {
+                    Test.run([
+                          [
+                            "PromiseTest.res",
+                            203,
+                            26,
+                            59
+                          ],
+                          "catch should not be called here"
+                        ], false, equal, true);
+                    return "unreachable";
                   })), (function (msg) {
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              192,
+                              207,
                               26,
                               45
                             ],
@@ -249,7 +266,7 @@ function testParallel(param) {
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              225,
+                              240,
                               26,
                               55
                             ],
@@ -276,7 +293,7 @@ function testRace(param) {
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              243,
+                              258,
                               26,
                               44
                             ],

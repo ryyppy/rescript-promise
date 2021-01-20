@@ -1,23 +1,26 @@
 type t<+'a> = Js.Promise.t<'a>
+type rejectable<+'a>
 
 // Not a fan of this extra exception
 // ideally we'd be able to create a Js.Exn.Error
 // value instead
 //
-// Created a PR for this
+// Created a PR for this (got merged already)
 // https://github.com/rescript-lang/rescript-compiler/pull/4905
 exception JsError(Js.Exn.t)
 
 let resolve: 'a => t<'a>
 
+let fromRejectable: (rejectable<'a>, 'a => 'b, exn => 'b) => t<'b>
+
 @bs.scope("Promise") @bs.val
-external reject: exn => t<_> = "reject"
+external reject: exn => rejectable<_> = "reject"
 
 let make: (((. 'a) => unit, (. 'e) => unit) => unit) => t<'a>
 
 let then: (t<'a>, 'a => 'b) => t<'b>
 
-let catch: (t<'a>,  (exn) => 'b) => t<'b>
+let catch: (t<'a>, exn => 'b) => t<'b>
 
 let flatThen: (t<'a>, 'a => t<'b>) => t<'b>
 
