@@ -1,20 +1,19 @@
 # rescript-promise
 
-This is a proposal for a better ReScript promise binding that unfortunately **is not** zero-cost, and introduces some small overhead.
+This is a proposal for a better ReScript promise binding which aims to be as close to JS workflows as possible.
 
 > See the [PROPOSAL.md](./PROPOSAL.md) for the rationale and design decisions.
 
-**Quick feature summary:**
+**Feature Overview:**
 
 - `t-first` bindings
-- Fully compatible with core `Js.Promise.t` type
-- `map` function for transforming values in a promise chain
-- `catch` function for catching any JS or ReScript errors (all represented as an `exn` value)
-- `then` function for chaining nested promises
-- `all` and `race` function for running promises concurrently
-- `finally` function for arbitrary tasks after a promise rejected / resolved
-
-This binding aims to be as close to the JS APIs and workflows as possible and requires a small runtime layer for fixing nested promises in ReScript.
+- Fully compatible with the builtin `Js.Promise.t` type
+- `map` for transforming values in a promise chain
+- `catch` for catching any JS or ReScript errors (all represented as an `exn` value)
+- `then` for chaining nested promises
+- `all` and `race` for running promises concurrently
+- `finally` for arbitrary tasks after a promise has rejected / resolved
+- Globally accessible `Promise` module that doesn't collide with `Js.Promise`
 
 **Non-Goals of `rescript-promise`:**
 
@@ -23,7 +22,7 @@ This binding aims to be as close to the JS APIs and workflows as possible and re
 
 ## Installation (not published yet)
 
-This is experimental and not published yet. Don't use it in production yet.
+This is experimental and not published yet. Don't use it in production, unless you feel adventurous.
 
 ```
 # added to see how an installation might look like
