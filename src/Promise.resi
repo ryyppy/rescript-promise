@@ -122,6 +122,35 @@ In case you want to convert a promise's value to another value, consider using `
 ")
 let then: (t<'a>, 'a => t<'b>) => t<'b>
 
+@ocaml.doc("
+[finally(promise, callback)] is used to execute a function that is called no matter if a promise
+was resolved or rejected. It will return the same `promise` it originally received.
+```rescript
+exception SomeError(string)
+let isDone = ref(false)
+
+resolve(5)
+->then(_ => {
+  reject(TestError(\"test\"))
+})
+->map(v => {
+  Js.log2(\"final result\", v)
+})
+->catch(_ => {
+  Js.log(\"Error handled\")
+})
+->finally(() => {
+  Js.log(\"finally\")
+  isDone := true
+})
+->map(() => {
+  Js.log2(\"isDone:\", isDone.contents)
+})
+->ignore
+```
+")
+@bs.send external finally: (t<'a>, unit => unit) => t<'a> = "finally"
+
 /* Combining promises. */
 @bs.scope("Promise") @bs.val
 external race: array<t<'a>> => t<'a> = "race"

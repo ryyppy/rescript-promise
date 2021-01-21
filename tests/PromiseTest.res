@@ -176,11 +176,53 @@ module Catching = {
     })
   }
 
+  let testCatchFinally = () => {
+    open Promise
+    let wasCalled = ref(false)
+    resolve(5)
+    ->then(_ => {
+      reject(TestError("test"))
+    })
+    ->map(v => {
+      v
+    })
+    ->catch(_ => {
+      ()
+    })
+    ->finally(() => {
+      wasCalled := true
+    })
+    ->map(v => {
+      Test.run(__POS_OF__("value should be unit"), v, equal, ())
+      Test.run(__POS_OF__("finally should have been called"), wasCalled.contents, equal, true)
+    })
+    ->ignore
+  }
+
+  let testResolveFinally = () => {
+    open Promise
+    let wasCalled = ref(false)
+    resolve(5)
+    ->map(v => {
+      v + 5
+    })
+    ->finally(() => {
+      wasCalled := true
+    })
+    ->map(v => {
+      Test.run(__POS_OF__("value should be 5"), v, equal, 10)
+      Test.run(__POS_OF__("finally should have been called"), wasCalled.contents, equal, true)
+    })
+    ->ignore
+  }
+
   let runTests = () => {
     testExternalPromiseThrow()->ignore
     testExnThrow()->ignore
     testRaiseErrorThrow()->ignore
     thenAfterCatch()->ignore
+    testCatchFinally()->ignore
+    testResolveFinally()->ignore
   }
 }
 

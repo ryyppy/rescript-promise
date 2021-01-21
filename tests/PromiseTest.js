@@ -213,11 +213,84 @@ function thenAfterCatch(param) {
               }));
 }
 
+function testCatchFinally(param) {
+  var wasCalled = {
+    contents: false
+  };
+  $$Promise.map($$Promise.$$catch($$Promise.map($$Promise.$$then($$Promise.resolve(5), (function (param) {
+                        return Promise.reject({
+                                    RE_EXN_ID: TestError,
+                                    _1: "test"
+                                  });
+                      })), (function (v) {
+                    return v;
+                  })), (function (param) {
+                
+              })).finally(function (param) {
+            wasCalled.contents = true;
+            
+          }), (function (v) {
+          Test.run([
+                [
+                  "PromiseTest.res",
+                  196,
+                  26,
+                  48
+                ],
+                "value should be unit"
+              ], v, equal, undefined);
+          return Test.run([
+                      [
+                        "PromiseTest.res",
+                        197,
+                        26,
+                        59
+                      ],
+                      "finally should have been called"
+                    ], wasCalled.contents, equal, true);
+        }));
+  
+}
+
+function testResolveFinally(param) {
+  var wasCalled = {
+    contents: false
+  };
+  $$Promise.map($$Promise.map($$Promise.resolve(5), (function (v) {
+                return v + 5 | 0;
+              })).finally(function (param) {
+            wasCalled.contents = true;
+            
+          }), (function (v) {
+          Test.run([
+                [
+                  "PromiseTest.res",
+                  213,
+                  26,
+                  45
+                ],
+                "value should be 5"
+              ], v, equal, 10);
+          return Test.run([
+                      [
+                        "PromiseTest.res",
+                        214,
+                        26,
+                        59
+                      ],
+                      "finally should have been called"
+                    ], wasCalled.contents, equal, true);
+        }));
+  
+}
+
 function runTests$3(param) {
   testExternalPromiseThrow(undefined);
   testExnThrow(undefined);
   testRaiseErrorThrow(undefined);
   thenAfterCatch(undefined);
+  testCatchFinally(undefined);
+  testResolveFinally(undefined);
   
 }
 
@@ -227,6 +300,8 @@ var Catching = {
   testExnThrow: testExnThrow,
   testRaiseErrorThrow: testRaiseErrorThrow,
   thenAfterCatch: thenAfterCatch,
+  testCatchFinally: testCatchFinally,
+  testResolveFinally: testResolveFinally,
   runTests: runTests$3
 };
 
@@ -271,7 +346,7 @@ function testParallel(param) {
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              208,
+                              250,
                               26,
                               55
                             ],
@@ -298,7 +373,7 @@ function testRace(param) {
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              226,
+                              268,
                               26,
                               44
                             ],

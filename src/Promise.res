@@ -63,6 +63,8 @@ external resolve: 'a => t<'a> = "_resolve"
 @bs.val
 external then: (t<'a>, 'a => t<'b>) => t<'b> = "_flatThen"
 
+@bs.send external finally: (t<'a>, unit => unit) => t<'a> = "finally"
+
 @bs.val
 external map: (t<'a>, 'a => 'b) => t<'b> = "_then"
 
