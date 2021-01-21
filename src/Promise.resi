@@ -17,7 +17,7 @@ let make: (((. 'a) => unit, (. 'e) => unit) => unit) => t<'a>
 
 let then: (t<'a>, 'a => 'b) => t<'b>
 
-let catch: (t<'a>,  (exn) => 'b) => t<'b>
+let catch: (t<'a>,  (exn) => 'a) => t<'a>
 
 let flatThen: (t<'a>, 'a => t<'b>) => t<'b>
 

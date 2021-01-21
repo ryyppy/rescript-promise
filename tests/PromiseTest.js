@@ -114,12 +114,14 @@ var asyncParseFail = (function() {
   });
 
 function testExternalPromiseThrow(param) {
-  return $$Promise.$$catch(Curry._1(asyncParseFail, undefined), (function (e) {
+  return $$Promise.$$catch($$Promise.$$then(Curry._1(asyncParseFail, undefined), (function (param) {
+                    
+                  })), (function (e) {
                 var success = e.RE_EXN_ID === $$Promise.JsError ? Caml_obj.caml_equal(e._1.message, "Unexpected token . in JSON at position 1") : false;
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              130,
+                              132,
                               26,
                               76
                             ],
@@ -140,7 +142,7 @@ function testExnThrow(param) {
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              148,
+                              150,
                               26,
                               49
                             ],
@@ -157,7 +159,7 @@ function testRaiseErrorThrow(param) {
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              170,
+                              172,
                               26,
                               51
                             ],
@@ -182,7 +184,7 @@ function thenAfterCatch(param) {
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              192,
+                              194,
                               26,
                               45
                             ],
@@ -249,7 +251,7 @@ function testParallel(param) {
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              225,
+                              227,
                               26,
                               55
                             ],
@@ -276,7 +278,7 @@ function testRace(param) {
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              243,
+                              245,
                               26,
                               44
                             ],

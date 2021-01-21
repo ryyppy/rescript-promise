@@ -121,7 +121,9 @@ module Catching = {
   let testExternalPromiseThrow = () => {
     open Promise
 
-    asyncParseFail()->catch(e => {
+    asyncParseFail()
+    ->then(_ => ()) // Since our asyncParse will fail anyways, we convert to Promise.t<unit> for our catch later
+    ->catch(e => {
       let success = switch e {
       | JsError(err) => Js.Exn.message(err) == Some("Unexpected token . in JSON at position 1")
       | _ => false
