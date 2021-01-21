@@ -1,4 +1,9 @@
-type t<+'a> = Js.Promise.t<'a>
+// The +'a marks the abstract type parameter as covariant, which essentially means that
+// a value of type 'a is immutable and may not be used in some mutable context.
+//
+// More details about polymorphism / invariance / covariance,... can be found here:
+// https://caml.inria.fr/pub/docs/manual-ocaml/polymorphism.html#ss:variance:abstract-data-types
+type t<+'a>
 
 // JsError is currently a shim exception and will be deprecated for future
 // ReScript versions.
