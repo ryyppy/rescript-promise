@@ -63,13 +63,13 @@ let p3 = Promise.reject(MyOwnError("some rejection"))
 **Chain promises:**
 
 ```rescript
-let p = {
-  open Promise
-  Promise.resolve("hello world")
-  ->then(msg => {
-    Js.log("Message: " ++ msg)
-  })
-}
+open Promise
+Promise.resolve("hello world")
+->map(msg => {
+  // `map` allows the transformation of a nested promise value
+  Js.log("Message: " ++ msg)
+})
+->ignore // Requires ignoring due to unhandled return value
 ```
 
 **Chain nested promises:**
@@ -80,67 +80,120 @@ type comment = string
 @val external queryComments: string => Js.Promise.t<array<comment>> = "API.queryComments"
 @val external queryUser: string => Js.Promise.t<user> = "API.queryUser"
 
-let p = {
-  open Promise
+open Promise
 
-  queryUser("patrick")
-  ->flatThen(user => {
-    // We use flatThen instead of then to automatically
-    // unnest our queryComments promise
-    queryComments(user["name"])
-  })
-  ->then(comments => {
-    // comments is now an array<comment>
-    Belt.Array.forEach(comments, comment => Js.log(comment))
-  })
-}
+queryUser("patrick")
+->then(user => {
+  // We use `then` instead of `map` to automatically
+  // unnest our queryComments promise
+  queryComments(user["name"])
+})
+->map(comments => {
+  // comments is now an array<comment>
+  Belt.Array.forEach(comments, comment => Js.log(comment))
+})
+->ignore
 ```
 
 **Catch promise errors:**
 
+**Important:** `catch` needs to return the same return value as its previous `then` / `map` call (e.g. if you pass a `promise` of type `Promise.t<int>`, you need to return an `int` in your `catch` callback).
+
 ```rescript
 exception MyError(string)
 
-let p = {
-  open Promise
+open Promise
 
-  Promise.reject(MyError("test"))
-  ->then(str => {
-    Js.log("this should not be reached: " ++ str)
-  })
-  ->catch(e => {
-    switch e {
-    | MyError(str) => Js.log("found MyError: " ++ str)
-    | _ => Js.log("Anything else")
-    }
-  })
-}
+Promise.reject(MyError("test"))
+->map(str => {
+  Js.log("this should not be reached: " ++ str)
+  Ok("successful")
+})
+->catch(e => {
+  let err = switch e {
+  | MyError(str) => "found MyError: " ++ str
+  | _ => "Some unknown error"
+  }
+  Error(err)
+})
+->map(result => {
+  let msg = switch result {
+  | Ok(str) => "Successful: " ++ str
+  | Error(msg) => "Error: " ++ msg
+  }
+  Js.log(msg)
+})
+->ignore
 ```
 
 **Catch promise errors caused by a thrown JS exception:**
 
 ```rescript
-let p = {
-  open Promise
+open Promise
 
-  let causeErr = () => {
-    Js.Exn.raiseError("Some JS error")
-  }
-
-  Promise.resolve()
-  ->then(_ => {
-    causeErr()
-  })
-  ->catch(e => {
-    switch e {
-      | JsError(obj) =>
-        switch Js.Exn.message(obj) {
-          | Some(msg) => Js.log("Some JS error msg: " ++ msg)
-          | None => Js.log("Must be some non-error value")
-        }
-    }
-  })
+let causeErr = () => {
+  Js.Exn.raiseError("Some JS error")
 }
+
+Promise.resolve()
+->map(_ => {
+  causeErr()
+})
+->catch(e => {
+  switch e {
+  | JsError(obj) =>
+    switch Js.Exn.message(obj) {
+    | Some(msg) => Js.log("Some JS error msg: " ++ msg)
+    | None => Js.log("Must be some non-error value")
+    }
+  | _ => Js.log("Some unknown error")
+  }
+})
+->ignore
+```
+
+**Catch promise errors that can be caused by ReScript OR JS Errors (mixed error types):**
+
+Every value passed to `catch` are unified into an `exn` value, no matter if those errors were thrown in JS, or in ReScript. This is similar to how we [handle mixed JS / ReScript errors](https://rescript-lang.org/docs/manual/latest/exception#catch-both-rescript-and-js-exceptions-in-the-same-catch-clause) in synchronous try / catch blocks.
+
+```rescript
+exception TestError(string)
+
+let causeJsErr = () => {
+  Js.Exn.raiseError("Some JS error")
+}
+
+let causeReScriptErr = () => {
+  raise(TestError("Some ReScript error"))
+}
+
+// imaginary randomizer function
+@bs.val external generateRandomInt: unit => int = "generateRandomInt"
+
+open Promise
+
+resolve()
+->map(_ => {
+  // We simulate a promise that either throws
+  // a ReScript error, or JS error
+  if generateRandomInt() > 5 {
+    causeReScriptErr()
+  } else {
+    causeJsErr()
+  }
+})
+->catch(e => {
+  switch e {
+  | TestError(msg) => Js.log("ReScript Error caught:" ++ msg)
+  | JsError(obj) =>
+    switch Js.Exn.message(obj) {
+    | Some(msg) => Js.log("Some JS error msg: " ++ msg)
+    | None => Js.log("Must be some non-error value")
+    }
+  | _ => Js.log("Some unknown error")
+  }
+})
+->ignore
 ```
 
 **Using a promise from JS:**
@@ -148,64 +201,63 @@ let p = {
 ```rescript
 @val external someAsyncApi: unit => Js.Promise.t<string> = "someAsyncApi"
 
-someAsyncApi()->Promise.then((str) => Js.log(str))
+someAsyncApi()->Promise.map((str) => Js.log(str))->ignore
 ```
 
 **Running multiple Promises concurrently:**
 
 ```rescript
-let _ = {
-  open Promise
+open Promise
 
-  let place = ref(0)
+let place = ref(0)
 
-  let delayedMsg = (ms, msg) => {
-    Promise.make((resolve, _) => {
-      Js.Global.setTimeout(() => {
-        place := place.contents + 1
-        resolve(.(place.contents, msg))
-      }, ms)->ignore
-    })
-  }
-
-  let p1 = delayedMsg(1000, "is Anna")
-  let p2 = delayedMsg(500, "myName")
-  let p3 = delayedMsg(100, "Hi")
-
-  all([p1, p2, p3])->then(arr => {
-    // [ [ 3, 'is Anna' ], [ 2, 'myName' ], [ 1, 'Hi' ] ]
-    Belt.Array.map(arr, ((place, name)) => {
-      Js.log(`Place ${Belt.Int.toString(place)} => ${name}`)
-    })
-    // Output
-    // Place 3 => is Anna
-    // Place 2 => myName
-    // Place 1 => Hi
+let delayedMsg = (ms, msg) => {
+  Promise.make((resolve, _) => {
+    Js.Global.setTimeout(() => {
+      place := place.contents + 1
+      resolve(.(place.contents, msg))
+    }, ms)->ignore
   })
 }
+
+let p1 = delayedMsg(1000, "is Anna")
+let p2 = delayedMsg(500, "myName")
+let p3 = delayedMsg(100, "Hi")
+
+all([p1, p2, p3])->map(arr => {
+  // [ [ 3, 'is Anna' ], [ 2, 'myName' ], [ 1, 'Hi' ] ]
+  Belt.Array.map(arr, ((place, name)) => {
+    Js.log(`Place ${Belt.Int.toString(place)} => ${name}`)
+  })
+  // Output
+  // Place 3 => is Anna
+  // Place 2 => myName
+  // Place 1 => Hi
+})
+->ignore
 ```
 
 **Race Promises:**
 
 ```rescript
-let _ = {
-  open Promise
+open Promise
 
-  let racer = (ms, name) => {
-    Promise.make((resolve, _) => {
-      Js.Global.setTimeout(() => {
-        resolve(. name)
-      }, ms)->ignore
-    })
-  }
-
-  let promises = [racer(1000, "Turtle"), racer(500, "Hare"), racer(100, "Eagle")]
-
-  race(promises)->then(winner => {
-    Js.log("Congrats: " ++ winner)
-    // Congrats: Eagle
+let racer = (ms, name) => {
+  Promise.make((resolve, _) => {
+    Js.Global.setTimeout(() => {
+      resolve(. name)
+    }, ms)->ignore
   })
 }
+
+let promises = [racer(1000, "Turtle"), racer(500, "Hare"), racer(100, "Eagle")]
+
+race(promises)
+->map(winner => {
+  Js.log("Congrats: " ++ winner)
+  // Congrats: Eagle
+})
+->ignore
 ```
 
 ## Development

@@ -8,19 +8,22 @@ var JsError = Caml_exceptions.create("Promise.JsError");
 
 function PromiseBox(p) {
     this.nested = p;
-};
+}
+
 function unbox(value) {
     if (value instanceof PromiseBox)
         return value.nested;
     else
         return value;
 }
+
 function box(value) {
     if (value != null && typeof value.then === 'function')
         return new PromiseBox(value);
     else
         return value;
 }
+
 function _make(executor) {
     return new Promise(function (resolve, reject) {
         var boxingResolve = function(value) {
@@ -28,22 +31,23 @@ function _make(executor) {
         };
         executor(boxingResolve, reject);
     });
-};
+}
+
 function _resolve(value) {
     return Promise.resolve(box(value));
-};
+}
 
 function _flatThen(promise, callback) {
     return promise.then(function (value) {
         return callback(unbox(value));
     });
-};
+}
 
 function _then(promise, callback) {
     return promise.then(function (value) {
         return _resolve(callback(unbox(value)));
     });
-};
+}
 ;
 
 function all(promises) {
@@ -116,20 +120,20 @@ function make(prim) {
   return _make(prim);
 }
 
-function $$then(prim, prim$1) {
+function map(prim, prim$1) {
   return _then(prim, prim$1);
 }
 
-function flatThen(prim, prim$1) {
+function $$then(prim, prim$1) {
   return _flatThen(prim, prim$1);
 }
 
 exports.JsError = JsError;
 exports.resolve = resolve;
 exports.make = make;
-exports.$$then = $$then;
+exports.map = map;
 exports.$$catch = $$catch;
-exports.flatThen = flatThen;
+exports.$$then = $$then;
 exports.all = all;
 exports.all2 = all2;
 exports.all3 = all3;
