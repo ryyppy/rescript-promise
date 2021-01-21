@@ -152,6 +152,50 @@ Promise.resolve()
 ->ignore
 ```
 
+**Catch promise errors that can be caused by ReScript OR JS Errors (mixed error types):**
+
+Every value passed to `catch` are unified into an `exn` value, no matter if those errors were thrown in JS, or in ReScript. This is similar to how we [handle mixed JS / ReScript errors](https://rescript-lang.org/docs/manual/latest/exception#catch-both-rescript-and-js-exceptions-in-the-same-catch-clause) in synchronous try / catch blocks.
+
+```rescript
+exception TestError(string)
+
+let causeJsErr = () => {
+  Js.Exn.raiseError("Some JS error")
+}
+
+let causeReScriptErr = () => {
+  raise(TestError("Some ReScript error"))
+}
+
+// imaginary randomizer function
+@bs.val external generateRandomInt: unit => int = "generateRandomInt"
+
+open Promise
+
+resolve()
+->map(_ => {
+  // We simulate a promise that either throws
+  // a ReScript error, or JS error
+  if generateRandomInt() > 5 {
+    causeReScriptErr()
+  } else {
+    causeJsErr()
+  }
+})
+->catch(e => {
+  switch e {
+  | TestError(msg) => Js.log("ReScript Error caught:" ++ msg)
+  | JsError(obj) =>
+    switch Js.Exn.message(obj) {
+    | Some(msg) => Js.log("Some JS error msg: " ++ msg)
+    | None => Js.log("Must be some non-error value")
+    }
+  | _ => Js.log("Some unknown error")
+  }
+})
+->ignore
+```
+
 **Using a promise from JS:**
 
 ```rescript
