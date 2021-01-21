@@ -7,13 +7,19 @@ This is a proposal for a better ReScript promise binding that unfortunately **is
 **Quick feature summary:**
 
 - `t-first` bindings
-- Fully compatible with `Js.Promise.t`
-- Allows nested promises (no `resolve` call on each `then`)
-- Has small runtime overhead for fixing nested promises
-- No rejection tracking or other complex type hackery
-- No special utilities (less things to maintain)
+- Fully compatible with core `Js.Promise.t` type
+- `map` function for transforming values in a promise chain
+- `catch` function for catching any JS or ReScript errors (all represented as an `exn` value)
+- `then` function for chaining nested promises
+- `all` and `race` function for running promises concurrently
+- `finally` function for arbitrary tasks after a promise rejected / resolved
 
-This binding aims to be as close to the JS Promise API as possible.
+This binding aims to be as close to the JS APIs and workflows as possible and requires a small runtime layer for fixing nested promises in ReScript.
+
+**Non-Goals of `rescript-promise`:**
+
+- No rejection tracking or other complex type hackery
+- No special utilities (we will add docs on how to implement common utils on your own)
 
 ## Installation (not published yet)
 
