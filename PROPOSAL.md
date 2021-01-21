@@ -6,13 +6,13 @@ ReScript comes with a `Js.Promise` binding that allows binding to vanilla JS pro
 
 Let's describe the problems and potential solutions for the official Promise bindings.
 
-## Problems
+## Challenges
 
 ### 1) t-last vs t-first APIs
 
 Right now all functionality within `Js.Promise` are optimized for `|>` usage. Our bindings are designed to be used with the `->` operator.
 
-**Example t-last (old)**
+**Example t-last**
 
 ```rescript
 let myPromise = Js.Promise.make((~resolve, ~reject) => resolve(. 2))
@@ -30,30 +30,6 @@ myPromise->then_(value => {
 }, _)->ignore
 ```
 
-**Example t-first (new)**
-
-```rescript
-let myP = Promise2.make((resolve, _reject) => {
-  resolve(. 1)
-})
-
-open Promise2
-
-myP->then(n => {
-  Js.log(n)
-  n + 1
-})->then(n => {
-  n + 2
-})->catch(err => {
-  Js.log2("error occurred", err)
-  -2
-})->finally(() => {
-  Js.log("done")
-})->ignore
-```
-
-**Note:** For the rest of the document, we will use the `t-first` api `Promise2` to describe our problems more easily.
-
 ### 2) Nested Promises Cause Runtime Errors
 
 In JS, whenever you return a promise within a promise chain, the value of the promise will always be unwrapped in the JS runtime.That means, `then(() => Promise.resolve(newPromise))` will actually pass down the value that’s inside `newPromise`, instead of passing the whole promise. This causes the type system to report a different type than the runtime, ultimately causing runtime errors.
@@ -61,47 +37,43 @@ In JS, whenever you return a promise within a promise chain, the value of the pr
 Here is a minimal reproducible example of the problem:
 
 ```rescript
-let p = {
-  open Promise2
+open Promise
 
-  make((resolve, _reject) => {
-    resolve(. 1)
-  })->then(n => {
+myPromise->then(n => {
     let nested = make((resolve, _) => {resolve(. n + 10)})
 
     resolve(nested)
-  })->then((f: Promise2.t<int>) => {
-    // during runtime, f will be an int
-    // so if you'd try to unwrap that value with `f->then()`, it will blow up
-    // with a `f doesn't have a function then() defined`
-    Js.log(f)
-    resolve(0)
-  })
-}
+    },_)->then((f: Promise2.t<int>) => {
+      // during runtime, f will be an int
+      // so if you'd try to unwrap that value with `f->then()`, it will blow up
+      // with a `f doesn't have a function then() defined`
+      Js.log(f)
+      resolve(0)
+      })
 
-p->Promise2.then(v => {
+p->Promise.then(v => {
   Js.log2("value: ", v)
   Promise2.resolve(ignore())
-})->ignore
+}, _)->ignore
 ```
+
+Also refer to the [discussion in the reason-promise](https://github.com/aantron/promise#discussion-why-js-promises-are-unsafe) repository.
 
 ### 3) The need for an explicit `resolve`
 
 To be fair, this is more of a UX issue than a technical issue, but in the current bindings, we need to call `Js.Promise.resolve()` for each `then` body to satisfy our interface.
 
-This is a very common source of confusion for our users.
+This is a very common source of confusion for our users whenever they want to transform a value within a promise chain:
 
 ```rescript
-p->Promise2.then(v => {
+p->Promise.then(v => {
   Js.log2("value: ", v)
 
   // Especially resolving `unit` is a really annoying detail
   // oftentimes we just want to log something and be done with it
-  Promise2.resolve(ignore())
-})->ignore
+  Promise.resolve(ignore())
+}, _)->ignore
 ```
-
-Also refer to the [discussion in the reason-promise](https://github.com/aantron/promise#discussion-why-js-promises-are-unsafe) repository.
 
 ### 4) Compatibility
 
@@ -142,38 +114,8 @@ For now, a binding with some runtime correction needs to suffice. The APIs are k
 Our solution is a `t-first` version of the original `Js.Promise` bindings, but with the `box` and `unbox` runtime of `reason-promise`. 
 
 - The API is designed as closely as possible to the official JS Promise APIs
-- `then` allows returning nested promises without runtime errors (solves Problem 2). The current design also offers a `flatThen` function for unnesting returned promises for the next `then` call
-- `then` allows returning a value that is not necessarily a Promise (solves Problem 3) 
-- We use the `Js.Promise.t` type, so users can just use it without any convertions 
+- `then` allows returning nested promises without runtime errors (solves Problem 2). It also helps unnesting values that can be consumed with a consecutive `map` call.
+- `map` allows returning a value that is not necessarily a Promise for easier value transformation (solves Problem 3) 
+- We use the `Js.Promise.t` type, so users can just use it without with existing `Js.Promise.t` based code without any extra convertions 
 
-### Quick Example
-
-```res
-let _ = {
-  open Promise
-  make((resolve, _reject) => {
-    resolve(. 1)
-  })
-  ->flatThen(foo => {
-    Js.log(foo + 1)
-    let other = resolve("This is working")
-
-    // Allow passing a nested promise, which
-    // automatically gets unwrapped
-    other
-  })
-  ->then(msg => {
-    Js.log("Message received: " ++ msg)
-
-    // Allows passing down a string, that
-    // gets automatically wrapped in a promise
-    "plain string"
-  })
-  ->then(s => {
-    Js.log(s ++ " is a string")
-  })
-  ->ignore
-}
-```
-
-See the [README](./README.md) and [tests](./tests) for more examples. 
+Check out the Usage section of our [README](./README.md) for detailed API usage.
