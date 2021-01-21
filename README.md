@@ -97,7 +97,7 @@ queryUser("patrick")
 
 **Catch promise errors:**
 
-**Important:** `catch` needs to return the same return value as its previous `then` call.
+**Important:** `catch` needs to return the same return value as its previous `then` / `map` call (e.g. if you pass a `promise` of type `Promise.t<int>`, you need to return an `int` in your `catch` callback).
 
 ```rescript
 exception MyError(string)
