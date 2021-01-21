@@ -196,24 +196,24 @@ all([p1, p2, p3])->map(arr => {
 **Race Promises:**
 
 ```rescript
-let _ = {
-  open Promise
+open Promise
 
-  let racer = (ms, name) => {
-    Promise.make((resolve, _) => {
-      Js.Global.setTimeout(() => {
-        resolve(. name)
-      }, ms)->ignore
-    })
-  }
-
-  let promises = [racer(1000, "Turtle"), racer(500, "Hare"), racer(100, "Eagle")]
-
-  race(promises)->then(winner => {
-    Js.log("Congrats: " ++ winner)
-    // Congrats: Eagle
+let racer = (ms, name) => {
+  Promise.make((resolve, _) => {
+    Js.Global.setTimeout(() => {
+      resolve(. name)
+    }, ms)->ignore
   })
 }
+
+let promises = [racer(1000, "Turtle"), racer(500, "Hare"), racer(100, "Eagle")]
+
+race(promises)
+->map(winner => {
+  Js.log("Congrats: " ++ winner)
+  // Congrats: Eagle
+})
+->ignore
 ```
 
 ## Development
