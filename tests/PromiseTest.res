@@ -26,7 +26,7 @@ module Creation = {
 
 module ThenChaining = {
   // A promise should be able to return a nested
-  // Promise and also flatten it to ease the access
+  // Promise and also flatten it for a map call to ease the access
   // to the actual value
   let testFlatThen = () => {
     open Promise
@@ -55,7 +55,7 @@ module ThenChaining = {
       resolve(str)
     })
     ->map(p => {
-      // Here we are explicitly accessing the promise without flatThen
+      // Here we are explicitly accessing the promise without a previous `then` call
       p->map(str => {
         Test.run(__POS_OF__("Should still be simple string"), str, equal, "simple string")
       })
