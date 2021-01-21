@@ -1,8 +1,5 @@
 type t<+'a> = Js.Promise.t<'a>
 
-// Will eventually be removed when Js.Exn.Error
-// can be constructed in userspace
-// See:
 exception JsError(Js.Exn.t)
 external unsafeToJsExn: exn => Js.Exn.t = "%identity"
 
@@ -64,12 +61,10 @@ external resolve: 'a => t<'a> = "_resolve"
 /* external resolveU: (. 'a) => t<'b> = "resolve" */
 
 @bs.val
-external flatThen: (t<'a>, 'a => t<'b>) => t<'b> = "_flatThen"
-
-/* let then = (promise, callback) => flatThen(promise, v => resolveU(. callback(v))) */
+external then: (t<'a>, 'a => t<'b>) => t<'b> = "_flatThen"
 
 @bs.val
-external then: (t<'a>, 'a => 'b) => t<'b> = "_then"
+external map: (t<'a>, 'a => 'b) => t<'b> = "_then"
 
 @bs.scope("Promise") @bs.val
 external reject: exn => t<_> = "reject"
@@ -77,7 +72,7 @@ external reject: exn => t<_> = "reject"
 @bs.scope("Promise") @bs.val
 external jsAll: 'a => 'b = "all"
 
-let all = promises => then(jsAll(promises), promises => Js.Array2.map(promises, unbox))
+let all = promises => map(jsAll(promises), promises => Js.Array2.map(promises, unbox))
 
 let all2 = (p1, p2) => jsAll((p1, p2))
 

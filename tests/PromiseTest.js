@@ -14,18 +14,38 @@ var fail = Js_exn.raiseError;
 
 var equal = Caml_obj.caml_equal;
 
-function creationTest(param) {
+function resolveTest(param) {
+  $$Promise.map($$Promise.resolve("test"), (function (str) {
+          return Test.run([
+                      [
+                        "PromiseTest.res",
+                        17,
+                        26,
+                        47
+                      ],
+                      "Should resolve test"
+                    ], str, equal, "test");
+        }));
   
 }
 
+function runTests(param) {
+  return resolveTest(undefined);
+}
+
+var Creation = {
+  resolveTest: resolveTest,
+  runTests: runTests
+};
+
 function testFlatThen(param) {
-  return $$Promise.$$then($$Promise.flatThen($$Promise.resolve(1), (function (first) {
+  return $$Promise.map($$Promise.$$then($$Promise.resolve(1), (function (first) {
                     return $$Promise.resolve(first + 1 | 0);
                   })), (function (value) {
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              57,
+                              38,
                               26,
                               39
                             ],
@@ -35,13 +55,13 @@ function testFlatThen(param) {
 }
 
 function testThen(param) {
-  return $$Promise.$$then($$Promise.$$then($$Promise.$$then($$Promise.resolve(1), (function (param) {
+  return $$Promise.map($$Promise.map($$Promise.map($$Promise.resolve(1), (function (param) {
                         return "simple string";
                       })), (function (str) {
                     Test.run([
                           [
                             "PromiseTest.res",
-                            72,
+                            53,
                             26,
                             53
                           ],
@@ -49,11 +69,11 @@ function testThen(param) {
                         ], str, equal, "simple string");
                     return $$Promise.resolve(str);
                   })), (function (p) {
-                return $$Promise.$$then(p, (function (str) {
+                return $$Promise.map(p, (function (str) {
                               return Test.run([
                                           [
                                             "PromiseTest.res",
-                                            79,
+                                            60,
                                             28,
                                             59
                                           ],
@@ -63,7 +83,7 @@ function testThen(param) {
               }));
 }
 
-function runTests(param) {
+function runTests$1(param) {
   testFlatThen(undefined);
   testThen(undefined);
   
@@ -72,7 +92,7 @@ function runTests(param) {
 var ThenChaining = {
   testFlatThen: testFlatThen,
   testThen: testThen,
-  runTests: runTests
+  runTests: runTests$1
 };
 
 function testExnRejection(param) {
@@ -83,7 +103,7 @@ function testExnRejection(param) {
           return Test.run([
                       [
                         "PromiseTest.res",
-                        99,
+                        80,
                         26,
                         30
                       ],
@@ -96,14 +116,14 @@ function testExnRejection(param) {
   
 }
 
-function runTests$1(param) {
+function runTests$2(param) {
   testExnRejection(undefined);
   
 }
 
 var Rejection = {
   testExnRejection: testExnRejection,
-  runTests: runTests$1
+  runTests: runTests$2
 };
 
 var asyncParseFail = (function() {
@@ -114,14 +134,14 @@ var asyncParseFail = (function() {
   });
 
 function testExternalPromiseThrow(param) {
-  return $$Promise.$$catch($$Promise.$$then(Curry._1(asyncParseFail, undefined), (function (param) {
+  return $$Promise.$$catch($$Promise.map(Curry._1(asyncParseFail, undefined), (function (param) {
                     
                   })), (function (e) {
                 var success = e.RE_EXN_ID === $$Promise.JsError ? Caml_obj.caml_equal(e._1.message, "Unexpected token . in JSON at position 1") : false;
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              132,
+                              113,
                               26,
                               76
                             ],
@@ -142,7 +162,7 @@ function testExnThrow(param) {
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              150,
+                              131,
                               26,
                               49
                             ],
@@ -159,7 +179,7 @@ function testRaiseErrorThrow(param) {
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              172,
+                              153,
                               26,
                               51
                             ],
@@ -169,7 +189,7 @@ function testRaiseErrorThrow(param) {
 }
 
 function thenAfterCatch(param) {
-  return $$Promise.$$then($$Promise.$$catch($$Promise.flatThen($$Promise.resolve(undefined), (function (param) {
+  return $$Promise.map($$Promise.$$catch($$Promise.$$then($$Promise.resolve(undefined), (function (param) {
                         return Promise.reject({
                                     RE_EXN_ID: TestError,
                                     _1: "some rejected value"
@@ -184,7 +204,7 @@ function thenAfterCatch(param) {
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              194,
+                              175,
                               26,
                               45
                             ],
@@ -193,7 +213,7 @@ function thenAfterCatch(param) {
               }));
 }
 
-function runTests$2(param) {
+function runTests$3(param) {
   testExternalPromiseThrow(undefined);
   testExnThrow(undefined);
   testRaiseErrorThrow(undefined);
@@ -207,7 +227,7 @@ var Catching = {
   testExnThrow: testExnThrow,
   testRaiseErrorThrow: testRaiseErrorThrow,
   thenAfterCatch: thenAfterCatch,
-  runTests: runTests$2
+  runTests: runTests$3
 };
 
 function testParallel(param) {
@@ -229,7 +249,7 @@ function testParallel(param) {
   var p1 = delayedMsg(1000, "is Anna");
   var p2 = delayedMsg(500, "myName");
   var p3 = delayedMsg(100, "Hi");
-  return $$Promise.$$then($$Promise.all([
+  return $$Promise.map($$Promise.all([
                   p1,
                   p2,
                   p3
@@ -251,7 +271,7 @@ function testParallel(param) {
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              227,
+                              208,
                               26,
                               55
                             ],
@@ -274,11 +294,11 @@ function testRace(param) {
     racer(500, "Hare"),
     racer(100, "Eagle")
   ];
-  return $$Promise.$$then(Promise.race(promises), (function (winner) {
+  return $$Promise.map(Promise.race(promises), (function (winner) {
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              245,
+                              226,
                               26,
                               44
                             ],
@@ -287,7 +307,7 @@ function testRace(param) {
               }));
 }
 
-function runTests$3(param) {
+function runTests$4(param) {
   testParallel(undefined);
   testRace(undefined);
   
@@ -296,21 +316,23 @@ function runTests$3(param) {
 var Concurrently = {
   testParallel: testParallel,
   testRace: testRace,
-  runTests: runTests$3
+  runTests: runTests$4
 };
 
-runTests(undefined);
+resolveTest(undefined);
+
+runTests$1(undefined);
 
 testExnRejection(undefined);
 
-runTests$2(undefined);
-
 runTests$3(undefined);
+
+runTests$4(undefined);
 
 exports.TestError = TestError;
 exports.fail = fail;
 exports.equal = equal;
-exports.creationTest = creationTest;
+exports.Creation = Creation;
 exports.ThenChaining = ThenChaining;
 exports.Rejection = Rejection;
 exports.Catching = Catching;

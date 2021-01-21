@@ -1,31 +1,3 @@
-/*
-let foo = {
-  open Promise
-
-  make((_, reject) => {
-    reject(. "oops")
-  })
-  ->catch(e => {
-    Js.log(e)
-    1
-  })
-  ->then(num => {
-    Js.log2("add + 1 to recovered", num + 1)
-  })
-}
-
-let interop = {
-  Js.Promise.resolve("interop promise")
-  ->Promise.then(n => {
-    Js.log(n)
-    Promise.resolve("interop is working")
-  })
-  ->Promise.then(p => {
-    p->Promise.then(msg => Js.log(msg))
-  })
-}
-*/
-
 exception TestError(string)
 
 let fail = msg => {
@@ -36,11 +8,20 @@ let equal = (a, b) => {
   a == b
 }
 
-let creationTest = () => {
-  /* Test.run(__POS_OF__("Create a promise"), ) */
+module Creation = {
+  let resolveTest = () => {
+    open Promise
 
-  /* let p1 = Promise.resolve() */
-  ()
+    Promise.resolve("test")
+    ->map(str => {
+      Test.run(__POS_OF__("Should resolve test"), str, equal, "test")
+    })
+    ->ignore
+  }
+
+  let runTests = () => {
+    resolveTest()
+  }
 }
 
 module ThenChaining = {
@@ -50,10 +31,10 @@ module ThenChaining = {
   let testFlatThen = () => {
     open Promise
     resolve(1)
-    ->flatThen(first => {
+    ->then(first => {
       resolve(first + 1)
     })
-    ->then(value => {
+    ->map(value => {
       Test.run(__POS_OF__("Should be 2"), value, equal, 2)
     })
   }
@@ -65,17 +46,17 @@ module ThenChaining = {
     open Promise
 
     resolve(1)
-    ->then(_ => {
+    ->map(_ => {
       "simple string"
     })
-    ->then(str => {
+    ->map(str => {
       Test.run(__POS_OF__("Should be 'simple string'"), str, equal, "simple string")
 
       resolve(str)
     })
-    ->then(p => {
+    ->map(p => {
       // Here we are explicitly accessing the promise without flatThen
-      p->then(str => {
+      p->map(str => {
         Test.run(__POS_OF__("Should still be simple string"), str, equal, "simple string")
       })
     })
@@ -122,7 +103,7 @@ module Catching = {
     open Promise
 
     asyncParseFail()
-    ->then(_ => ()) // Since our asyncParse will fail anyways, we convert to Promise.t<unit> for our catch later
+    ->map(_ => ()) // Since our asyncParse will fail anyways, we convert to Promise.t<unit> for our catch later
     ->catch(e => {
       let success = switch e {
       | JsError(err) => Js.Exn.message(err) == Some("Unexpected token . in JSON at position 1")
@@ -178,7 +159,7 @@ module Catching = {
   let thenAfterCatch = () => {
     open Promise
     resolve()
-    ->flatThen(_ => {
+    ->then(_ => {
       // NOTE: if then is used, there will be an uncaught
       // error
       reject(TestError("some rejected value"))
@@ -190,7 +171,7 @@ module Catching = {
       }
       s
     })
-    ->then(msg => {
+    ->map(msg => {
       Test.run(__POS_OF__("Should be success"), msg, equal, "success")
     })
   }
@@ -222,7 +203,7 @@ module Concurrently = {
     let p2 = delayedMsg(500, "myName")
     let p3 = delayedMsg(100, "Hi")
 
-    all([p1, p2, p3])->then(arr => {
+    all([p1, p2, p3])->map(arr => {
       let exp = [(3, "is Anna"), (2, "myName"), (1, "Hi")]
       Test.run(__POS_OF__("Should have correct placing"), arr, equal, exp)
     })
@@ -241,7 +222,7 @@ module Concurrently = {
 
     let promises = [racer(1000, "Turtle"), racer(500, "Hare"), racer(100, "Eagle")]
 
-    race(promises)->then(winner => {
+    race(promises)->map(winner => {
       Test.run(__POS_OF__("Eagle should win"), winner, equal, "Eagle")
     })
   }
@@ -252,7 +233,7 @@ module Concurrently = {
   }
 }
 
-creationTest()
+Creation.runTests()
 ThenChaining.runTests()
 Rejection.runTests()
 Catching.runTests()

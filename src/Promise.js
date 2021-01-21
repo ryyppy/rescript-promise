@@ -120,20 +120,20 @@ function make(prim) {
   return _make(prim);
 }
 
-function $$then(prim, prim$1) {
+function map(prim, prim$1) {
   return _then(prim, prim$1);
 }
 
-function flatThen(prim, prim$1) {
+function $$then(prim, prim$1) {
   return _flatThen(prim, prim$1);
 }
 
 exports.JsError = JsError;
 exports.resolve = resolve;
 exports.make = make;
-exports.$$then = $$then;
+exports.map = map;
 exports.$$catch = $$catch;
-exports.flatThen = flatThen;
+exports.$$then = $$then;
 exports.all = all;
 exports.all2 = all2;
 exports.all3 = all3;
