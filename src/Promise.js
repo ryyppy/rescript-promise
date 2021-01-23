@@ -37,13 +37,13 @@ function _resolve(value) {
     return Promise.resolve(box(value));
 }
 
-function _flatThen(promise, callback) {
+function _then(promise, callback) {
     return promise.then(function (value) {
         return callback(unbox(value));
     });
 }
 
-function _then(promise, callback) {
+function _map(promise, callback) {
     return promise.then(function (value) {
         return _resolve(callback(unbox(value)));
     });
@@ -51,7 +51,7 @@ function _then(promise, callback) {
 ;
 
 function all(promises) {
-  return _then(Promise.all(promises), (function (promises) {
+  return _map(Promise.all(promises), (function (promises) {
                 return promises.map(function (prim) {
                             return unbox(prim);
                           });
@@ -121,11 +121,11 @@ function make(prim) {
 }
 
 function map(prim, prim$1) {
-  return _then(prim, prim$1);
+  return _map(prim, Curry.__1(prim$1));
 }
 
 function $$then(prim, prim$1) {
-  return _flatThen(prim, prim$1);
+  return _then(prim, prim$1);
 }
 
 exports.JsError = JsError;

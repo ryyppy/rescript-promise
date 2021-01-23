@@ -35,13 +35,13 @@ function _resolve(value) {
     return Promise.resolve(box(value));
 }
 
-function _flatThen(promise, callback) {
+function _then(promise, callback) {
     return promise.then(function (value) {
         return callback(unbox(value));
     });
 }
 
-function _then(promise, callback) {
+function _map(promise, callback) {
     return promise.then(function (value) {
         return _resolve(callback(unbox(value)));
     });
@@ -61,12 +61,12 @@ external resolve: 'a => t<'a> = "_resolve"
 /* external resolveU: (. 'a) => t<'b> = "resolve" */
 
 @bs.val
-external then: (t<'a>, 'a => t<'b>) => t<'b> = "_flatThen"
+external then: (t<'a>, 'a => t<'b>) => t<'b> = "_then"
 
 @bs.send external finally: (t<'a>, unit => unit) => t<'a> = "finally"
 
 @bs.val
-external map: (t<'a>, 'a => 'b) => t<'b> = "_then"
+external map: (t<'a>, @uncurry 'a => 'b) => t<'b> = "_map"
 
 @bs.scope("Promise") @bs.val
 external reject: exn => t<_> = "reject"
