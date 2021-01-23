@@ -283,6 +283,14 @@ Runs all tests
 node tests/PromiseTest.js
 ```
 
+## Run Examples
+
+Examples are runnable on node, and require an active internet connection to be able to access external mockup apis.
+
+```
+node examples/FetchExample.js
+```
+
 ## Acknowledgements
 
 Heavily inspired by [github.com/aantron/promise](https://github.com/aantron/promise).
