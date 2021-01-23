@@ -15,17 +15,17 @@ var fail = Js_exn.raiseError;
 var equal = Caml_obj.caml_equal;
 
 function resolveTest(param) {
-  $$Promise.map($$Promise.resolve("test"), (function (str) {
-          return Test.run([
-                      [
-                        "PromiseTest.res",
-                        17,
-                        26,
-                        47
-                      ],
-                      "Should resolve test"
-                    ], str, equal, "test");
-        }));
+  Promise.resolve("test").then(function (str) {
+        return Test.run([
+                    [
+                      "PromiseTest.res",
+                      17,
+                      26,
+                      47
+                    ],
+                    "Should resolve test"
+                  ], str, equal, "test");
+      });
   
 }
 
@@ -38,60 +38,115 @@ var Creation = {
   runTests: runTests
 };
 
-function testFlatThen(param) {
-  return $$Promise.map($$Promise.$$then($$Promise.resolve(1), (function (first) {
-                    return $$Promise.resolve(first + 1 | 0);
-                  })), (function (value) {
+function testThen(param) {
+  return Promise.resolve(1).then(function (first) {
+                return Promise.resolve(first + 1 | 0);
+              }).then(function (value) {
+              return Test.run([
+                          [
+                            "PromiseTest.res",
+                            38,
+                            26,
+                            39
+                          ],
+                          "Should be 2"
+                        ], value, equal, 2);
+            });
+}
+
+function testInvalidThen(param) {
+  return $$Promise.$$catch(Promise.resolve(1).then(function (first) {
+                    return Promise.resolve(Promise.resolve(first + 1 | 0));
+                  }).then(function (p) {
+                  p.then(function (value) {
+                        return Test.run([
+                                    [
+                                      "PromiseTest.res",
+                                      53,
+                                      28,
+                                      41
+                                    ],
+                                    "Should be 2"
+                                  ], value, equal, 2);
+                      });
+                  
+                }), (function (e) {
+                var ret = e.RE_EXN_ID === $$Promise.JsError ? e._1.message === "p.then is not a function" : false;
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              38,
+                              62,
                               26,
-                              39
+                              60
                             ],
-                            "Should be 2"
-                          ], value, equal, 2);
+                            "then should have thrown an error"
+                          ], ret, equal, true);
               }));
 }
 
-function testThen(param) {
-  return $$Promise.map($$Promise.map($$Promise.map($$Promise.resolve(1), (function (param) {
-                        return "simple string";
-                      })), (function (str) {
-                    Test.run([
+function testMap(param) {
+  return Promise.resolve(1).then(function (param) {
+                  return "simple string";
+                }).then(function (str) {
+                Test.run([
+                      [
+                        "PromiseTest.res",
+                        76,
+                        26,
+                        53
+                      ],
+                      "Should be 'simple string'"
+                    ], str, equal, "simple string");
+                return str + "!";
+              }).then(function (str) {
+              return Test.run([
                           [
                             "PromiseTest.res",
-                            53,
+                            82,
                             26,
-                            53
+                            54
                           ],
-                          "Should be 'simple string'"
-                        ], str, equal, "simple string");
-                    return $$Promise.resolve(str);
-                  })), (function (p) {
-                return $$Promise.map(p, (function (str) {
-                              return Test.run([
-                                          [
-                                            "PromiseTest.res",
-                                            60,
-                                            28,
-                                            59
-                                          ],
-                                          "Should still be simple string"
-                                        ], str, equal, "simple string");
-                            }));
+                          "Should be 'simple string'!"
+                        ], str, equal, "simple string!");
+            });
+}
+
+function testInvalidMap(param) {
+  return $$Promise.$$catch(Promise.resolve(1).then(function (value) {
+                    return Promise.resolve(value);
+                  }).then(function (p) {
+                  p.then(function (n) {
+                        console.log("Unreachable value:", n);
+                        
+                      });
+                  
+                }), (function (e) {
+                var ret = e.RE_EXN_ID === $$Promise.JsError ? e._1.message === "p.then is not a function" : false;
+                return Test.run([
+                            [
+                              "PromiseTest.res",
+                              107,
+                              26,
+                              60
+                            ],
+                            "then should have thrown an error"
+                          ], ret, equal, true);
               }));
 }
 
 function runTests$1(param) {
-  testFlatThen(undefined);
   testThen(undefined);
+  testInvalidThen(undefined);
+  testMap(undefined);
+  testInvalidMap(undefined);
   
 }
 
 var ThenChaining = {
-  testFlatThen: testFlatThen,
   testThen: testThen,
+  testInvalidThen: testInvalidThen,
+  testMap: testMap,
+  testInvalidMap: testInvalidMap,
   runTests: runTests$1
 };
 
@@ -103,7 +158,7 @@ function testExnRejection(param) {
           return Test.run([
                       [
                         "PromiseTest.res",
-                        80,
+                        128,
                         26,
                         30
                       ],
@@ -134,14 +189,14 @@ var asyncParseFail = (function() {
   });
 
 function testExternalPromiseThrow(param) {
-  return $$Promise.$$catch($$Promise.map(Curry._1(asyncParseFail, undefined), (function (param) {
-                    
-                  })), (function (e) {
+  return $$Promise.$$catch(Curry._1(asyncParseFail, undefined).then(function (param) {
+                  
+                }), (function (e) {
                 var success = e.RE_EXN_ID === $$Promise.JsError ? Caml_obj.caml_equal(e._1.message, "Unexpected token . in JSON at position 1") : false;
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              113,
+                              161,
                               26,
                               76
                             ],
@@ -151,18 +206,18 @@ function testExternalPromiseThrow(param) {
 }
 
 function testExnThrow(param) {
-  return $$Promise.$$catch($$Promise.$$then($$Promise.resolve(undefined), (function (param) {
-                    throw {
-                          RE_EXN_ID: TestError,
-                          _1: "Thrown exn",
-                          Error: new Error()
-                        };
-                  })), (function (e) {
+  return $$Promise.$$catch(Promise.resolve(undefined).then(function (param) {
+                  throw {
+                        RE_EXN_ID: TestError,
+                        _1: "Thrown exn",
+                        Error: new Error()
+                      };
+                }), (function (e) {
                 var isTestErr = e.RE_EXN_ID === TestError && e._1 === "Thrown exn" ? true : false;
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              131,
+                              179,
                               26,
                               49
                             ],
@@ -172,14 +227,14 @@ function testExnThrow(param) {
 }
 
 function testRaiseErrorThrow(param) {
-  return $$Promise.$$catch($$Promise.$$then($$Promise.resolve(undefined), (function (param) {
-                    return Js_exn.raiseError("Some JS error");
-                  })), (function (e) {
+  return $$Promise.$$catch(Promise.resolve(undefined).then(function (param) {
+                  return Js_exn.raiseError("Some JS error");
+                }), (function (e) {
                 var isTestErr = e.RE_EXN_ID === $$Promise.JsError ? Caml_obj.caml_equal(e._1.message, "Some JS error") : false;
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              153,
+                              201,
                               26,
                               51
                             ],
@@ -189,66 +244,66 @@ function testRaiseErrorThrow(param) {
 }
 
 function thenAfterCatch(param) {
-  return $$Promise.map($$Promise.$$catch($$Promise.$$then($$Promise.resolve(undefined), (function (param) {
-                        return Promise.reject({
-                                    RE_EXN_ID: TestError,
-                                    _1: "some rejected value"
-                                  });
-                      })), (function (e) {
-                    if (e.RE_EXN_ID === TestError && e._1 === "some rejected value") {
-                      return "success";
-                    } else {
-                      return "not a test error";
-                    }
-                  })), (function (msg) {
-                return Test.run([
-                            [
-                              "PromiseTest.res",
-                              175,
-                              26,
-                              45
-                            ],
-                            "Should be success"
-                          ], msg, equal, "success");
-              }));
+  return $$Promise.$$catch(Promise.resolve(undefined).then(function (param) {
+                    return Promise.reject({
+                                RE_EXN_ID: TestError,
+                                _1: "some rejected value"
+                              });
+                  }), (function (e) {
+                  if (e.RE_EXN_ID === TestError && e._1 === "some rejected value") {
+                    return "success";
+                  } else {
+                    return "not a test error";
+                  }
+                })).then(function (msg) {
+              return Test.run([
+                          [
+                            "PromiseTest.res",
+                            223,
+                            26,
+                            45
+                          ],
+                          "Should be success"
+                        ], msg, equal, "success");
+            });
 }
 
 function testCatchFinally(param) {
   var wasCalled = {
     contents: false
   };
-  $$Promise.map($$Promise.$$catch($$Promise.map($$Promise.$$then($$Promise.resolve(5), (function (param) {
-                        return Promise.reject({
-                                    RE_EXN_ID: TestError,
-                                    _1: "test"
-                                  });
-                      })), (function (v) {
-                    return v;
-                  })), (function (param) {
-                
-              })).finally(function (param) {
-            wasCalled.contents = true;
-            
-          }), (function (v) {
-          Test.run([
-                [
-                  "PromiseTest.res",
-                  196,
-                  26,
-                  48
-                ],
-                "value should be unit"
-              ], v, equal, undefined);
-          return Test.run([
-                      [
-                        "PromiseTest.res",
-                        197,
-                        26,
-                        59
-                      ],
-                      "finally should have been called"
-                    ], wasCalled.contents, equal, true);
-        }));
+  $$Promise.$$catch(Promise.resolve(5).then(function (param) {
+                  return Promise.reject({
+                              RE_EXN_ID: TestError,
+                              _1: "test"
+                            });
+                }).then(function (v) {
+                return v;
+              }), (function (param) {
+              
+            })).finally(function (param) {
+          wasCalled.contents = true;
+          
+        }).then(function (v) {
+        Test.run([
+              [
+                "PromiseTest.res",
+                244,
+                26,
+                48
+              ],
+              "value should be unit"
+            ], v, equal, undefined);
+        return Test.run([
+                    [
+                      "PromiseTest.res",
+                      245,
+                      26,
+                      59
+                    ],
+                    "finally should have been called"
+                  ], wasCalled.contents, equal, true);
+      });
   
 }
 
@@ -256,31 +311,31 @@ function testResolveFinally(param) {
   var wasCalled = {
     contents: false
   };
-  $$Promise.map($$Promise.map($$Promise.resolve(5), (function (v) {
-                return v + 5 | 0;
-              })).finally(function (param) {
-            wasCalled.contents = true;
-            
-          }), (function (v) {
-          Test.run([
-                [
-                  "PromiseTest.res",
-                  213,
-                  26,
-                  45
-                ],
-                "value should be 5"
-              ], v, equal, 10);
-          return Test.run([
-                      [
-                        "PromiseTest.res",
-                        214,
-                        26,
-                        59
-                      ],
-                      "finally should have been called"
-                    ], wasCalled.contents, equal, true);
-        }));
+  Promise.resolve(5).then(function (v) {
+            return v + 5 | 0;
+          }).finally(function (param) {
+          wasCalled.contents = true;
+          
+        }).then(function (v) {
+        Test.run([
+              [
+                "PromiseTest.res",
+                261,
+                26,
+                45
+              ],
+              "value should be 5"
+            ], v, equal, 10);
+        return Test.run([
+                    [
+                      "PromiseTest.res",
+                      262,
+                      26,
+                      59
+                    ],
+                    "finally should have been called"
+                  ], wasCalled.contents, equal, true);
+      });
   
 }
 
@@ -310,76 +365,76 @@ function testParallel(param) {
     contents: 0
   };
   var delayedMsg = function (ms, msg) {
-    return $$Promise.make(function (resolve, param) {
-                setTimeout((function (param) {
-                        place.contents = place.contents + 1 | 0;
-                        return resolve([
-                                    place.contents,
-                                    msg
-                                  ]);
-                      }), ms);
-                
-              });
+    return new Promise((function (resolve, param) {
+                  setTimeout((function (param) {
+                          place.contents = place.contents + 1 | 0;
+                          return resolve([
+                                      place.contents,
+                                      msg
+                                    ]);
+                        }), ms);
+                  
+                }));
   };
   var p1 = delayedMsg(1000, "is Anna");
   var p2 = delayedMsg(500, "myName");
   var p3 = delayedMsg(100, "Hi");
-  return $$Promise.map($$Promise.all([
-                  p1,
-                  p2,
-                  p3
-                ]), (function (arr) {
-                var exp = [
-                  [
-                    3,
-                    "is Anna"
-                  ],
-                  [
-                    2,
-                    "myName"
-                  ],
-                  [
-                    1,
-                    "Hi"
-                  ]
-                ];
-                return Test.run([
-                            [
-                              "PromiseTest.res",
-                              250,
-                              26,
-                              55
-                            ],
-                            "Should have correct placing"
-                          ], arr, equal, exp);
-              }));
+  return Promise.all([
+                p1,
+                p2,
+                p3
+              ]).then(function (arr) {
+              var exp = [
+                [
+                  3,
+                  "is Anna"
+                ],
+                [
+                  2,
+                  "myName"
+                ],
+                [
+                  1,
+                  "Hi"
+                ]
+              ];
+              return Test.run([
+                          [
+                            "PromiseTest.res",
+                            298,
+                            26,
+                            55
+                          ],
+                          "Should have correct placing"
+                        ], arr, equal, exp);
+            });
 }
 
 function testRace(param) {
   var racer = function (ms, name) {
-    return $$Promise.make(function (resolve, param) {
-                setTimeout((function (param) {
-                        return resolve(name);
-                      }), ms);
-                
-              });
+    return new Promise((function (resolve, param) {
+                  setTimeout((function (param) {
+                          return resolve(name);
+                        }), ms);
+                  
+                }));
   };
   var promises = [
     racer(1000, "Turtle"),
     racer(500, "Hare"),
     racer(100, "Eagle")
   ];
-  return $$Promise.map(Promise.race(promises), (function (winner) {
-                return Test.run([
-                            [
-                              "PromiseTest.res",
-                              268,
-                              26,
-                              44
-                            ],
-                            "Eagle should win"
-                          ], winner, equal, "Eagle");
-              }));
+  return Promise.race(promises).then(function (winner) {
+              return Test.run([
+                          [
+                            "PromiseTest.res",
+                            316,
+                            26,
+                            44
+                          ],
+                          "Eagle should win"
+                        ], winner, equal, "Eagle");
+            });
 }
 
 function runTests$4(param) {
