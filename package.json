@@ -1,5 +1,5 @@
 {
-  "name": "rescript-promise",
+  "name": "@ryyppy/rescript-promise",
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
