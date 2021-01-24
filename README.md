@@ -1,6 +1,6 @@
 # rescript-promise
 
-This is a proposal for a better ReScript promise binding which aims to be as close to JS workflows as possible.
+This is a proposal for a better ReScript promise binding which aims to be as close to JS workflows as possible. It will be part of the official ReScript compiler, if it proofs itself to be successful.
 
 > See the [PROPOSAL.md](./PROPOSAL.md) for the rationale and design decisions.
 
@@ -25,30 +25,17 @@ This is a proposal for a better ReScript promise binding which aims to be as clo
 - There are 2 edge-cases where returning a `Promise.t<Promise.t<'a>>` value within `then` / `map` is not runtime safe (but also quite nonsensical). Refer to the [Common Mistakes](#common-mistakes) section for details.
 - These edge-cases shouldn't happen in day to day use, also, for those who have general concerns of runtime safetiness, should use a `catch` call in the end of each promise chain anyways
 
-## Installation (not published yet)
-
-This is experimental and not published yet. Don't use it in production, unless you feel adventurous.
+## Installation
 
 ```
-# added to see how an installation might look like
-npm install @rescript/rescript-promise --save
+npm install @ryyppy/rescript-promise --save
 ```
 
-Until npm release, use install directly from GH instead:
-
-```
-# via npm
-npm install git+https://github.com/ryyppy/rescript-promise.git --save
-
-# via yarn
-yarn add ryyppy/rescript-promise
-```
-
-Add `rescript-promise` as a dependency in your `bsconfig.json`:
+Add `@ryyppy/rescript-promise` as a dependency in your `bsconfig.json`:
 
 ```json
 {
-  "bs-dependencies": ["rescript-promise"]
+  "bs-dependencies": ["@ryyppy/rescript-promise"]
 }
 ```
 
