@@ -25,6 +25,10 @@ This is a proposal for a better ReScript promise binding which aims to be as clo
 - There are 2 edge-cases where returning a `Promise.t<Promise.t<'a>>` value within `then` / `map` is not runtime safe (but also quite nonsensical). Refer to the [Common Mistakes](#common-mistakes) section for details.
 - These edge-cases shouldn't happen in day to day use, also, for those who have general concerns of runtime safetiness, should use a `catch` call in the end of each promise chain anyways
 
+## Requirements
+
+`bs-platform@8.2` and above.
+
 ## Installation
 
 ```

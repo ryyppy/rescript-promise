@@ -1,7 +1,7 @@
 {
   "name": "@ryyppy/rescript-promise",
   "version": "0.0.1",
-  "description": "",
+  "description": "2020 proposal for new ReScript promise bindings",
   "main": "index.js",
   "scripts": {
     "test": "node tests/PromiseTest.js",
@@ -12,8 +12,8 @@
     "src/Promise.resi",
     "bsconfig.json"
   ],
-  "keywords": [],
-  "author": "",
+  "keywords": ["rescript", "promise", "bindings"],
+  "author": "Patrick Ecker",
   "license": "MIT",
   "devDependencies": {
     "@babel/code-frame": "^7.12.11",
