@@ -9,7 +9,8 @@
   },
   "files": [
     "src/Promise.res",
-    "src/Promise.resi"
+    "src/Promise.resi",
+    "bsconfig.json"
   ],
   "keywords": [],
   "author": "",
