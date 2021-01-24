@@ -133,7 +133,7 @@ Promise.resolve(5)
 In case you want to convert a promise's value to another value, consider using `map` instead.
 ")
 @bs.send
-external then: (t<'a>, 'a => t<'b>) => t<'b> = "then"
+external then: (t<'a>, @uncurry 'a => t<'b>) => t<'b> = "then"
 
 @ocaml.doc("
 [finally(promise, callback)] is used to execute a function that is called no matter if a promise

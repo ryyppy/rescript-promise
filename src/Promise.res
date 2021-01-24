@@ -6,19 +6,10 @@ external unsafeToJsExn: exn => Js.Exn.t = "%identity"
 @bs.new
 external make: ((@bs.uncurry (. 'a) => unit, (. 'e) => unit) => unit) => t<'a> = "Promise"
 
-/* @bs.val */
-/* external resolve: 'a => t<'a> = "_resolve" */
-
 @bs.val @bs.scope("Promise")
 external resolve: 'a => t<'a> = "resolve"
 
-/* @bs.val */
-/* external resolveU: (. 'a) => t<'b> = "resolve" */
-
-/* @bs.val */
-/* external then: (t<'a>, 'a => t<'b>) => t<'b> = "_then" */
-
-@bs.send external then: (t<'a>, 'a => t<'b>) => t<'b> = "then"
+@bs.send external then: (t<'a>, @uncurry 'a => t<'b>) => t<'b> = "then"
 
 @bs.send external finally: (t<'a>, unit => unit) => t<'a> = "finally"
 
