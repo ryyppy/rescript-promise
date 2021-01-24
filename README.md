@@ -22,7 +22,8 @@ This is a proposal for a better ReScript promise binding which aims to be as clo
 
 **Caveats:**
 
-- Returning and chaining a `Promise.t<Promise.t<'a>>` value with `then` / `map` is not runtime safe (but also quite nonsensical)
+- There are 2 edge-cases where returning a `Promise.t<Promise.t<'a>>` value within `then` / `map` is not runtime safe (but also quite nonsensical). Refer to the [Common Mistakes](#common-mistakes) section for details.
+- These edge-cases shouldn't happen in day to day use, also, for those who have general concerns of runtime safetiness, should use a `catch` call in the end of each promise chain anyways
 
 ## Installation (not published yet)
 
@@ -52,6 +53,10 @@ Add `rescript-promise` as a dependency in your `bsconfig.json`:
 ```
 
 This will expose a global `Promise` module (don't worry, it will not mess with your existing `Js.Promise` code).
+
+## Examples
+
+- [examples/FetchExample.res](examples/FetchExample.res): Using the `fetch` api to login / query some data with a full promise chain scenario
 
 ## Usage
 
@@ -273,11 +278,10 @@ race(promises)
 
 **Don't return a `Promise.t<'a>` within a `map` callback:**
 
-```
+```rescript
 open Promise
 
-resolve(1)
-  ->map((value: int) => {
+resolve(1) ->map((value: int) => {
 
     // BAD: This will cause a Promise.t<Promise.t<'a>>
     resolve(value)
@@ -296,7 +300,7 @@ resolve(1)
 
 **Don't return a `Promise.t<Promise.t<'a>>` within a `then` callback:**
 
-```
+```rescript
 open Promise
 
 resolve(1)
@@ -343,7 +347,3 @@ Examples are runnable on node, and require an active internet connection to be a
 ```
 node examples/FetchExample.js
 ```
-
-## Acknowledgements
-
-Heavily inspired by [github.com/aantron/promise](https://github.com/aantron/promise).
