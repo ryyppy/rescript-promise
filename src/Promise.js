@@ -6,103 +6,6 @@ var Caml_exceptions = require("bs-platform/lib/js/caml_exceptions.js");
 
 var JsError = Caml_exceptions.create("Promise.JsError");
 
-function PromiseBox(p) {
-    this.nested = p;
-}
-
-function unbox(value) {
-    if (value instanceof PromiseBox)
-        return value.nested;
-    else
-        return value;
-}
-
-function box(value) {
-    if (value != null && typeof value.then === 'function')
-        return new PromiseBox(value);
-    else
-        return value;
-}
-
-function _make(executor) {
-    return new Promise(function (resolve, reject) {
-        var boxingResolve = function(value) {
-            resolve(box(value));
-        };
-        executor(boxingResolve, reject);
-    });
-}
-
-function _resolve(value) {
-    return Promise.resolve(box(value));
-}
-
-function _then(promise, callback) {
-    return promise.then(function (value) {
-        return callback(unbox(value));
-    });
-}
-
-function _map(promise, callback) {
-    return promise.then(function (value) {
-        return _resolve(callback(unbox(value)));
-    });
-}
-;
-
-function all(promises) {
-  return _map(Promise.all(promises), (function (promises) {
-                return promises.map(function (prim) {
-                            return unbox(prim);
-                          });
-              }));
-}
-
-function all2(p1, p2) {
-  return Promise.all([
-              p1,
-              p2
-            ]);
-}
-
-function all3(p1, p2, p3) {
-  return Promise.all([
-              p1,
-              p2,
-              p3
-            ]);
-}
-
-function all4(p1, p2, p3, p4) {
-  return Promise.all([
-              p1,
-              p2,
-              p3,
-              p4
-            ]);
-}
-
-function all5(p1, p2, p3, p4, p5) {
-  return Promise.all([
-              p1,
-              p2,
-              p3,
-              p4,
-              p5
-            ]);
-}
-
-function all6(p1, p2, p3, p4, p5, p6) {
-  return Promise.all([
-              p1,
-              p2,
-              p3,
-              p4,
-              p5,
-              p6
-            ]);
-}
-
 function $$catch(promise, callback) {
   return promise.catch(function (err) {
               return Curry._1(callback, Caml_exceptions.caml_is_extension(err) ? err : ({
@@ -112,32 +15,6 @@ function $$catch(promise, callback) {
             });
 }
 
-function resolve(prim) {
-  return _resolve(prim);
-}
-
-function make(prim) {
-  return _make(prim);
-}
-
-function map(prim, prim$1) {
-  return _map(prim, Curry.__1(prim$1));
-}
-
-function $$then(prim, prim$1) {
-  return _then(prim, prim$1);
-}
-
 exports.JsError = JsError;
-exports.resolve = resolve;
-exports.make = make;
-exports.map = map;
 exports.$$catch = $$catch;
-exports.$$then = $$then;
-exports.all = all;
-exports.all2 = all2;
-exports.all3 = all3;
-exports.all4 = all4;
-exports.all5 = all5;
-exports.all6 = all6;
-/*  Not a pure module */
+/* No side effect */

@@ -28,7 +28,7 @@ module ThenChaining = {
   // A promise should be able to return a nested
   // Promise and also flatten it for a map call to ease the access
   // to the actual value
-  let testFlatThen = () => {
+  let testThen = () => {
     open Promise
     resolve(1)
     ->then(first => {
@@ -39,10 +39,33 @@ module ThenChaining = {
     })
   }
 
-  // Promise.then should allow both, non-promise and
-  // promise values as a return value and correctly
-  // interpret the value in the chained then call
-  let testThen = () => {
+  // It's not allowed to return a Promise.t<Promise.t<'a>> value
+  // within a then. This operation will throw an error
+  let testInvalidThen = () => {
+    open Promise
+    resolve(1)
+    ->then(first => {
+      resolve(resolve(first + 1))
+    })
+    ->map(p => {
+      p
+      ->map(value => {
+        Test.run(__POS_OF__("Should be 2"), value, equal, 2)
+      })
+      ->ignore
+    })
+    ->catch(e => {
+      let ret = switch e {
+      | JsError(m) => Js.Exn.message(m) === Some("p.then is not a function")
+      | _ => false
+      }
+      Test.run(__POS_OF__("then should have thrown an error"), ret, equal, true)
+    })
+  }
+
+  // Promise.map should allow non-promise values as a callback value and
+  // should wrap its return value correctly in a new promise
+  let testMap = () => {
     open Promise
 
     resolve(1)
@@ -52,19 +75,44 @@ module ThenChaining = {
     ->map(str => {
       Test.run(__POS_OF__("Should be 'simple string'"), str, equal, "simple string")
 
-      resolve(str)
+      str ++ "!"
+    })
+    ->map(str => {
+      // Here we are explicitly accessing the promise without a previous `then` call
+      Test.run(__POS_OF__("Should be 'simple string'!"), str, equal, "simple string!")
+    })
+  }
+
+  // It's not allowed to pass a Promise.t<'a> value
+  // within a map. This operation will throw an error
+  let testInvalidMap = () => {
+    open Promise
+    resolve(1)
+    ->map(value => {
+      // INVALID OPERATION
+      resolve(value)
     })
     ->map(p => {
-      // Here we are explicitly accessing the promise without a previous `then` call
-      p->map(str => {
-        Test.run(__POS_OF__("Should still be simple string"), str, equal, "simple string")
+      p
+      ->map(n => {
+        Js.log2("Unreachable value:", n)
       })
+      ->ignore
+    })
+    ->catch(e => {
+      let ret = switch e {
+      | JsError(m) => Js.Exn.message(m) === Some("p.then is not a function")
+      | _ => false
+      }
+      Test.run(__POS_OF__("then should have thrown an error"), ret, equal, true)
     })
   }
 
   let runTests = () => {
-    testFlatThen()->ignore
     testThen()->ignore
+    testInvalidThen()->ignore
+    testMap()->ignore
+    testInvalidMap()->ignore
   }
 }
 

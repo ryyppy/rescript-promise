@@ -3,88 +3,39 @@ type t<+'a> = Js.Promise.t<'a>
 exception JsError(Js.Exn.t)
 external unsafeToJsExn: exn => Js.Exn.t = "%identity"
 
-%%bs.raw(`
-function PromiseBox(p) {
-    this.nested = p;
-}
+@bs.new
+external make: ((@bs.uncurry (. 'a) => unit, (. 'e) => unit) => unit) => t<'a> = "Promise"
 
-function unbox(value) {
-    if (value instanceof PromiseBox)
-        return value.nested;
-    else
-        return value;
-}
+@bs.val @bs.scope("Promise")
+external resolve: 'a => t<'a> = "resolve"
 
-function box(value) {
-    if (value != null && typeof value.then === 'function')
-        return new PromiseBox(value);
-    else
-        return value;
-}
-
-function _make(executor) {
-    return new Promise(function (resolve, reject) {
-        var boxingResolve = function(value) {
-            resolve(box(value));
-        };
-        executor(boxingResolve, reject);
-    });
-}
-
-function _resolve(value) {
-    return Promise.resolve(box(value));
-}
-
-function _then(promise, callback) {
-    return promise.then(function (value) {
-        return callback(unbox(value));
-    });
-}
-
-function _map(promise, callback) {
-    return promise.then(function (value) {
-        return _resolve(callback(unbox(value)));
-    });
-}
-`)
-
-@bs.val
-external unbox: 'a => 'a = "unbox"
-
-@bs.val
-external make: ((@bs.uncurry (. 'a) => unit, (. 'e) => unit) => unit) => t<'a> = "_make"
-
-@bs.val
-external resolve: 'a => t<'a> = "_resolve"
-
-/* @bs.val */
-/* external resolveU: (. 'a) => t<'b> = "resolve" */
-
-@bs.val
-external then: (t<'a>, 'a => t<'b>) => t<'b> = "_then"
+@bs.send external then: (t<'a>, @uncurry 'a => t<'b>) => t<'b> = "then"
 
 @bs.send external finally: (t<'a>, unit => unit) => t<'a> = "finally"
 
-@bs.val
-external map: (t<'a>, @uncurry 'a => 'b) => t<'b> = "_map"
+@bs.send
+external map: (t<'a>, @uncurry ('a => 'b)) => t<'b> = "then"
 
 @bs.scope("Promise") @bs.val
 external reject: exn => t<_> = "reject"
 
 @bs.scope("Promise") @bs.val
-external jsAll: 'a => 'b = "all"
+external all: array<t<'a>> => t<array<'a>> = "all"
 
-let all = promises => map(jsAll(promises), promises => Js.Array2.map(promises, unbox))
+@bs.scope("Promise") @bs.val
+external all2: (t<'a>, t<'b>) => t<('a, 'b)> = "all"
 
-let all2 = (p1, p2) => jsAll((p1, p2))
+@bs.scope("Promise") @bs.val
+external all3: (t<'a>, t<'b>, t<'c>) => t<('a, 'b, 'c)> = "all"
 
-let all3 = (p1, p2, p3) => jsAll((p1, p2, p3))
+@bs.scope("Promise") @bs.val
+external all4: (t<'a>, t<'b>, t<'c>, t<'d>) => t<('a, 'b, 'c, 'd)> = "all"
 
-let all4 = (p1, p2, p3, p4) => jsAll((p1, p2, p3, p4))
+@bs.scope("Promise") @bs.val
+external all5: (t<'a>, t<'b>, t<'c>, t<'d>, t<'e>) => t<('a, 'b, 'c, 'd, 'e)> = "all"
 
-let all5 = (p1, p2, p3, p4, p5) => jsAll((p1, p2, p3, p4, p5))
-
-let all6 = (p1, p2, p3, p4, p5, p6) => jsAll((p1, p2, p3, p4, p5, p6))
+@bs.scope("Promise") @bs.val
+external all6: (t<'a>, t<'b>, t<'c>, t<'d>, t<'e>, t<'f>) => t<('a, 'b, 'c, 'd, 'e, 'f)> = "all"
 
 @bs.send
 external _catch: (t<'a>, @bs.uncurry (exn => 'b)) => t<'b> = "catch"

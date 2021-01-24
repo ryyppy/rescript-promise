@@ -8,9 +8,9 @@ This is a proposal for a better ReScript promise binding which aims to be as clo
 
 - `t-first` bindings
 - Fully compatible with the builtin `Js.Promise.t` type
-- `map` for transforming values in a promise chain
+- `map` for transforming values within a promise chain
 - `catch` for catching any JS or ReScript errors (all represented as an `exn` value)
-- `then` for chaining nested promises
+- `then` for chaining functions that return another promise
 - `all` and `race` for running promises concurrently
 - `finally` for arbitrary tasks after a promise has rejected / resolved
 - Globally accessible `Promise` module that doesn't collide with `Js.Promise`
@@ -19,6 +19,11 @@ This is a proposal for a better ReScript promise binding which aims to be as clo
 
 - No rejection tracking or other complex type hackery
 - No special utilities (we will add docs on how to implement common utils on your own)
+
+**Caveats:**
+
+- There are 2 edge-cases where returning a `Promise.t<Promise.t<'a>>` value within `then` / `map` is not runtime safe (but also quite nonsensical). Refer to the [Common Mistakes](#common-mistakes) section for details.
+- These edge-cases shouldn't happen in day to day use, also, for those who have general concerns of runtime safetiness, should use a `catch` call in the end of each promise chain anyways
 
 ## Installation (not published yet)
 
@@ -49,6 +54,10 @@ Add `rescript-promise` as a dependency in your `bsconfig.json`:
 
 This will expose a global `Promise` module (don't worry, it will not mess with your existing `Js.Promise` code).
 
+## Examples
+
+- [examples/FetchExample.res](examples/FetchExample.res): Using the `fetch` api to login / query some data with a full promise chain scenario
+
 ## Usage
 
 **Creating a Promise:**
@@ -65,7 +74,7 @@ exception MyOwnError(string)
 let p3 = Promise.reject(MyOwnError("some rejection"))
 ```
 
-**Chain promises:**
+**Access and transform a promise value:**
 
 ```rescript
 open Promise
@@ -77,7 +86,7 @@ Promise.resolve("hello world")
 ->ignore // Requires ignoring due to unhandled return value
 ```
 
-**Chain nested promises:**
+**Chain promises:**
 
 ```rescript
 type user = {"name": string}
@@ -265,6 +274,54 @@ race(promises)
 ->ignore
 ```
 
+## Common Mistakes
+
+**Don't return a `Promise.t<'a>` within a `map` callback:**
+
+```rescript
+open Promise
+
+resolve(1) ->map((value: int) => {
+
+    // BAD: This will cause a Promise.t<Promise.t<'a>>
+    resolve(value)
+  })
+  ->map((p: Promise.t<int>) => {
+    // p is marked as a Promise, but it's actually an int
+    // so this code will fail
+    p->map((n) => Js.log(n))->ignore
+  })
+  ->catch((e) => {
+    Js.log("luckily, our mistake will be caught here");
+    // e: p.then is not a function
+  })
+  ->ignore
+```
+
+**Don't return a `Promise.t<Promise.t<'a>>` within a `then` callback:**
+
+```rescript
+open Promise
+
+resolve(1)
+  ->then((value: int) => {
+    let someOtherPromise = resolve(2)
+
+    // BAD: this will cause a Promise.t<Promise.t<'a>>
+    resolve(someOtherPromise)
+  })
+  ->map((p: Promise.t<int>) => {
+    // p is marked as a Promise, but it's actually an int
+    // so this code will fail
+    p->map((n) => Js.log(n))->ignore
+  })
+  ->catch((e) => {
+    Js.log("luckily, our mistake will be caught here");
+    // e: p.then is not a function
+  })
+  ->ignore
+```
+
 ## Development
 
 ```
@@ -290,7 +347,3 @@ Examples are runnable on node, and require an active internet connection to be a
 ```
 node examples/FetchExample.js
 ```
-
-## Acknowledgements
-
-Heavily inspired by [github.com/aantron/promise](https://github.com/aantron/promise).
