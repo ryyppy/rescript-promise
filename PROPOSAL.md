@@ -266,4 +266,4 @@ All of them more or less doing too much, or trying to fix up Promises, instead o
 
 ## Conclusion
 
-We think that with the final design, as documented in the [README](./README.md), we evaluated all available options and settled with the most minimalistic version of a `Promise` binding, that allows us to fix up the most pressing problems, and postpone the other mentioned problems to a later point of few. It's easier to argue to add a runtime layer later on, if the edge-cases turned out to be regular cases.
+We think that with the final design, as documented in the [README](./README.md), we evaluated all available options and settled with the most minimalistic version of a `Promise` binding, that allows us to fix up the most pressing problems, and postpone the other mentioned problems to a later point in time. It's easier to argue to add a runtime layer later on, if the edge-cases turned out to be regular cases.
