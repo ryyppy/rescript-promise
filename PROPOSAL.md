@@ -207,7 +207,7 @@ Readable and predictable JS output is probably the most important one, because o
 
 The previously mentioned `reason-promise` tries to tackle all of this dirty edge-cases on multiple levels, but this comes with a complexity cost of introducing two different types to differentiate between `rejectable` and `non-rejectable` promises. This introduces a non-trivial amount of mental overhead, where users are forced to continously categorize between different promises, even if the underlying data structure is the same.
 
-We think it's more practical to just teach one simple `then`, `map`, `all`, `race`, `finally` API, and then tell users to make sure to use a final `catch` to always be on the runtime safe side, even if they make mistakes with our aforementioned edge-cases.
+We think it's more practical to just teach one simple `then`, `map`, `all`, `race`, `finally` API, and then tell our users to use a final `catch` on each promise chain, to always be on the runtime safe side even if they make mistakes with our aforementioned edge-cases.
 
 Also, it is pretty hard to get into the edge-case, since there are different warning flags that you are doing something wrong, e.g.:
 
