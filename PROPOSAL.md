@@ -6,7 +6,6 @@ ReScript comes with a `Js.Promise` binding that allows binding to vanilla JS pro
 
 1. Current APIs are `t-last` instead of `t-first`, making them hard to use with the `->` operator (the recommended way to pipe in ReScript)
 2. Catching errors is unweildy, since it currently uses an abstract type `error` without any guidance on how to extract the information
-3. Compatibility between `Js.Promise.t` and `Promise.t` to allow seamless usage with existing codebases as well
 
 There's also another issue with chaining promises that resolve nested promises (`Js.Promise.t<Js.Promise.t<'a>>`), which we intentionally didn't fix, because we consider it a rare edge-case. We discuss the problem and the trade-offs with our solution in a separate section.
 
@@ -235,6 +234,10 @@ resolve(1)
 ```
 
 **To sum it up:** We think the upsides of having zero-cost interop, while having familiar JS, outweights the benefits of allowing nested promises, which should hopefully not happen in real world scenarios anyways.
+
+## Compatiblity
+
+Our proposed API exposes a `Promise.t` type that is fully compatible with the original `Js.Promise.t`, so it's easy to use the new bindings in existing codebases with `Js.Promise` code.
 
 ## Prior Art
 
