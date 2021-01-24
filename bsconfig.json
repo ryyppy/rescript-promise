@@ -1,6 +1,5 @@
 {
   "name": "rescript-promise",
-  "version": "0.1.0",
   "sources": [
     {
       "dir" : "src",

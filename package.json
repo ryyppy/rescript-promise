@@ -1,12 +1,16 @@
 {
   "name": "rescript-promise",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "node tests/PromiseTest.js",
     "watch": "bsb -make-world -w"
   },
+  "files": [
+    "src/Promise.res",
+    "src/Promise.resi"
+  ],
   "keywords": [],
   "author": "",
   "license": "MIT",
