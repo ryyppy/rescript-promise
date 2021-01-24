@@ -1,5 +1,5 @@
 {
-  "name": "rescript-promise",
+  "name": "@ryyppy/rescript-promise",
   "sources": [
     {
       "dir" : "src",
