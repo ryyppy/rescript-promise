@@ -261,8 +261,7 @@ It also adds `uncaughtError` handlers, and `result` / `option` based apis, which
 - [wokalski/vow](https://github.com/wokalski/vow)
 - [yawaramin/prometo](https://www.npmjs.com/package/@yawaramin/prometo)
 
-All of them more or less doing too much, or trying to fix up Promises, instead of taking them as they are.
-
+All those libraries gave us some good insights on different approaches of tackling promises during runtime, and they are probably a good solution for users who want to go the extra mile for extra type safety features. We wanted to keep it minimalistic though, so we generally went with a simpler approach.
 
 ## Conclusion
 
