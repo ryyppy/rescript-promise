@@ -1,6 +1,6 @@
 # rescript-promise
 
-This is a proposal for a better ReScript promise binding which aims to be as close to JS workflows as possible. It will be part of the official ReScript compiler, if it proofs itself to be successful.
+This is a proposal for a better ReScript promise binding which aims to be as close to JS workflows as possible. It will be part of the official ReScript compiler (aka. replacing the old `Js.Promise`), if it proofs itself to be successful.
 
 > See the [PROPOSAL.md](./PROPOSAL.md) for the rationale and design decisions.
 
