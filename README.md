@@ -1,6 +1,6 @@
 # rescript-promise
 
-This is a proposal for a better ReScript promise binding which aims to be as close to JS workflows as possible. It will be part of the official ReScript compiler (aka. replacing the old `Js.Promise`), if it proofs itself to be successful.
+This is a proposal for a better ReScript promise binding which aims to be as close to JS workflows as possible. It will be part of the official ReScript compiler if it proofs itself to be useful (aka. replacing the old `Js.Promise`).
 
 > See the [PROPOSAL.md](./PROPOSAL.md) for the rationale and design decisions.
 
@@ -8,6 +8,9 @@ This is a proposal for a better ReScript promise binding which aims to be as clo
 
 - `t-first` bindings
 - Fully compatible with the builtin `Js.Promise.t` type
+- `make` for creating a new promise with a `(resolve, reject) => {}` callback
+- `resolve` for creating a resolved promise with an arbitrary value
+- `reject` for creating a rejected promise
 - `map` for transforming values within a promise chain
 - `catch` for catching any JS or ReScript errors (all represented as an `exn` value)
 - `then` for chaining functions that return another promise
