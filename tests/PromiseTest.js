@@ -16,15 +16,16 @@ var equal = Caml_obj.caml_equal;
 
 function resolveTest(param) {
   Promise.resolve("test").then(function (str) {
-        return Test.run([
-                    [
-                      "PromiseTest.res",
-                      17,
-                      26,
-                      47
-                    ],
-                    "Should resolve test"
-                  ], str, equal, "test");
+        Test.run([
+              [
+                "PromiseTest.res",
+                17,
+                26,
+                47
+              ],
+              "Should resolve test"
+            ], str, equal, "test");
+        return Promise.resolve(undefined);
       });
   
 }
@@ -42,15 +43,16 @@ function testThen(param) {
   return Promise.resolve(1).then(function (first) {
                 return Promise.resolve(first + 1 | 0);
               }).then(function (value) {
-              return Test.run([
-                          [
-                            "PromiseTest.res",
-                            38,
-                            26,
-                            39
-                          ],
-                          "Should be 2"
-                        ], value, equal, 2);
+              Test.run([
+                    [
+                      "PromiseTest.res",
+                      39,
+                      26,
+                      39
+                    ],
+                    "Should be 2"
+                  ], value, equal, 2);
+              return Promise.resolve(undefined);
             });
 }
 
@@ -59,73 +61,24 @@ function testInvalidThen(param) {
                     return Promise.resolve(Promise.resolve(first + 1 | 0));
                   }).then(function (p) {
                   p.then(function (value) {
-                        return Test.run([
-                                    [
-                                      "PromiseTest.res",
-                                      53,
-                                      28,
-                                      41
-                                    ],
-                                    "Should be 2"
-                                  ], value, equal, 2);
+                        Test.run([
+                              [
+                                "PromiseTest.res",
+                                55,
+                                28,
+                                41
+                              ],
+                              "Should be 2"
+                            ], value, equal, 2);
+                        return Promise.resolve(undefined);
                       });
-                  
+                  return Promise.resolve(undefined);
                 }), (function (e) {
                 var ret = e.RE_EXN_ID === $$Promise.JsError ? e._1.message === "p.then is not a function" : false;
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              62,
-                              26,
-                              60
-                            ],
-                            "then should have thrown an error"
-                          ], ret, equal, true);
-              }));
-}
-
-function testMap(param) {
-  return Promise.resolve(1).then(function (param) {
-                  return "simple string";
-                }).then(function (str) {
-                Test.run([
-                      [
-                        "PromiseTest.res",
-                        76,
-                        26,
-                        53
-                      ],
-                      "Should be 'simple string'"
-                    ], str, equal, "simple string");
-                return str + "!";
-              }).then(function (str) {
-              return Test.run([
-                          [
-                            "PromiseTest.res",
-                            82,
-                            26,
-                            54
-                          ],
-                          "Should be 'simple string'!"
-                        ], str, equal, "simple string!");
-            });
-}
-
-function testInvalidMap(param) {
-  return $$Promise.$$catch(Promise.resolve(1).then(function (value) {
-                    return Promise.resolve(value);
-                  }).then(function (p) {
-                  p.then(function (n) {
-                        console.log("Unreachable value:", n);
-                        
-                      });
-                  
-                }), (function (e) {
-                var ret = e.RE_EXN_ID === $$Promise.JsError ? e._1.message === "p.then is not a function" : false;
-                return Test.run([
-                            [
-                              "PromiseTest.res",
-                              107,
+                              66,
                               26,
                               60
                             ],
@@ -137,16 +90,12 @@ function testInvalidMap(param) {
 function runTests$1(param) {
   testThen(undefined);
   testInvalidThen(undefined);
-  testMap(undefined);
-  testInvalidMap(undefined);
   
 }
 
 var ThenChaining = {
   testThen: testThen,
   testInvalidThen: testInvalidThen,
-  testMap: testMap,
-  testInvalidMap: testInvalidMap,
   runTests: runTests$1
 };
 
@@ -158,7 +107,7 @@ function testExnRejection(param) {
           return Test.run([
                       [
                         "PromiseTest.res",
-                        128,
+                        85,
                         26,
                         30
                       ],
@@ -190,13 +139,13 @@ var asyncParseFail = (function() {
 
 function testExternalPromiseThrow(param) {
   return $$Promise.$$catch(Curry._1(asyncParseFail, undefined).then(function (param) {
-                  
+                  return Promise.resolve(undefined);
                 }), (function (e) {
                 var success = e.RE_EXN_ID === $$Promise.JsError ? Caml_obj.caml_equal(e._1.message, "Unexpected token . in JSON at position 1") : false;
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              161,
+                              118,
                               26,
                               76
                             ],
@@ -217,7 +166,7 @@ function testExnThrow(param) {
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              179,
+                              136,
                               26,
                               49
                             ],
@@ -234,7 +183,7 @@ function testRaiseErrorThrow(param) {
                 return Test.run([
                             [
                               "PromiseTest.res",
-                              201,
+                              158,
                               26,
                               51
                             ],
@@ -256,15 +205,16 @@ function thenAfterCatch(param) {
                     return "not a test error";
                   }
                 })).then(function (msg) {
-              return Test.run([
-                          [
-                            "PromiseTest.res",
-                            223,
-                            26,
-                            45
-                          ],
-                          "Should be success"
-                        ], msg, equal, "success");
+              Test.run([
+                    [
+                      "PromiseTest.res",
+                      180,
+                      26,
+                      45
+                    ],
+                    "Should be success"
+                  ], msg, equal, "success");
+              return Promise.resolve(undefined);
             });
 }
 
@@ -278,7 +228,7 @@ function testCatchFinally(param) {
                               _1: "test"
                             });
                 }).then(function (v) {
-                return v;
+                return Promise.resolve(v);
               }), (function (param) {
               
             })).finally(function (param) {
@@ -288,21 +238,22 @@ function testCatchFinally(param) {
         Test.run([
               [
                 "PromiseTest.res",
-                244,
+                202,
                 26,
                 48
               ],
               "value should be unit"
             ], v, equal, undefined);
-        return Test.run([
-                    [
-                      "PromiseTest.res",
-                      245,
-                      26,
-                      59
-                    ],
-                    "finally should have been called"
-                  ], wasCalled.contents, equal, true);
+        Test.run([
+              [
+                "PromiseTest.res",
+                203,
+                26,
+                59
+              ],
+              "finally should have been called"
+            ], wasCalled.contents, equal, true);
+        return Promise.resolve(undefined);
       });
   
 }
@@ -312,7 +263,7 @@ function testResolveFinally(param) {
     contents: false
   };
   Promise.resolve(5).then(function (v) {
-            return v + 5 | 0;
+            return Promise.resolve(v + 5 | 0);
           }).finally(function (param) {
           wasCalled.contents = true;
           
@@ -320,21 +271,22 @@ function testResolveFinally(param) {
         Test.run([
               [
                 "PromiseTest.res",
-                261,
+                220,
                 26,
                 45
               ],
               "value should be 5"
             ], v, equal, 10);
-        return Test.run([
-                    [
-                      "PromiseTest.res",
-                      262,
-                      26,
-                      59
-                    ],
-                    "finally should have been called"
-                  ], wasCalled.contents, equal, true);
+        Test.run([
+              [
+                "PromiseTest.res",
+                221,
+                26,
+                59
+              ],
+              "finally should have been called"
+            ], wasCalled.contents, equal, true);
+        return Promise.resolve(undefined);
       });
   
 }
@@ -398,15 +350,16 @@ function testParallel(param) {
                   "Hi"
                 ]
               ];
-              return Test.run([
-                          [
-                            "PromiseTest.res",
-                            298,
-                            26,
-                            55
-                          ],
-                          "Should have correct placing"
-                        ], arr, equal, exp);
+              Test.run([
+                    [
+                      "PromiseTest.res",
+                      258,
+                      26,
+                      55
+                    ],
+                    "Should have correct placing"
+                  ], arr, equal, exp);
+              return Promise.resolve(undefined);
             });
 }
 
@@ -425,15 +378,16 @@ function testRace(param) {
     racer(100, "Eagle")
   ];
   return Promise.race(promises).then(function (winner) {
-              return Test.run([
-                          [
-                            "PromiseTest.res",
-                            316,
-                            26,
-                            44
-                          ],
-                          "Eagle should win"
-                        ], winner, equal, "Eagle");
+              Test.run([
+                    [
+                      "PromiseTest.res",
+                      277,
+                      26,
+                      44
+                    ],
+                    "Eagle should win"
+                  ], winner, equal, "Eagle");
+              return Promise.resolve(undefined);
             });
 }
 

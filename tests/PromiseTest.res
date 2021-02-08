@@ -13,8 +13,9 @@ module Creation = {
     open Promise
 
     Promise.resolve("test")
-    ->map(str => {
+    ->then(str => {
       Test.run(__POS_OF__("Should resolve test"), str, equal, "test")
+      resolve()
     })
     ->ignore
   }
@@ -26,7 +27,7 @@ module Creation = {
 
 module ThenChaining = {
   // A promise should be able to return a nested
-  // Promise and also flatten it for a map call to ease the access
+  // Promise and also flatten it for another then call
   // to the actual value
   let testThen = () => {
     open Promise
@@ -34,8 +35,9 @@ module ThenChaining = {
     ->then(first => {
       resolve(first + 1)
     })
-    ->map(value => {
+    ->then(value => {
       Test.run(__POS_OF__("Should be 2"), value, equal, 2)
+      resolve()
     })
   }
 
@@ -47,57 +49,14 @@ module ThenChaining = {
     ->then(first => {
       resolve(resolve(first + 1))
     })
-    ->map(p => {
+    ->then(p => {
       p
-      ->map(value => {
+      ->then(value => {
         Test.run(__POS_OF__("Should be 2"), value, equal, 2)
+        resolve()
       })
       ->ignore
-    })
-    ->catch(e => {
-      let ret = switch e {
-      | JsError(m) => Js.Exn.message(m) === Some("p.then is not a function")
-      | _ => false
-      }
-      Test.run(__POS_OF__("then should have thrown an error"), ret, equal, true)
-    })
-  }
-
-  // Promise.map should allow non-promise values as a callback value and
-  // should wrap its return value correctly in a new promise
-  let testMap = () => {
-    open Promise
-
-    resolve(1)
-    ->map(_ => {
-      "simple string"
-    })
-    ->map(str => {
-      Test.run(__POS_OF__("Should be 'simple string'"), str, equal, "simple string")
-
-      str ++ "!"
-    })
-    ->map(str => {
-      // Here we are explicitly accessing the promise without a previous `then` call
-      Test.run(__POS_OF__("Should be 'simple string'!"), str, equal, "simple string!")
-    })
-  }
-
-  // It's not allowed to pass a Promise.t<'a> value
-  // within a map. This operation will throw an error
-  let testInvalidMap = () => {
-    open Promise
-    resolve(1)
-    ->map(value => {
-      // INVALID OPERATION
-      resolve(value)
-    })
-    ->map(p => {
-      p
-      ->map(n => {
-        Js.log2("Unreachable value:", n)
-      })
-      ->ignore
+      resolve()
     })
     ->catch(e => {
       let ret = switch e {
@@ -111,8 +70,6 @@ module ThenChaining = {
   let runTests = () => {
     testThen()->ignore
     testInvalidThen()->ignore
-    testMap()->ignore
-    testInvalidMap()->ignore
   }
 }
 
@@ -151,7 +108,7 @@ module Catching = {
     open Promise
 
     asyncParseFail()
-    ->map(_ => ()) // Since our asyncParse will fail anyways, we convert to Promise.t<unit> for our catch later
+    ->then(_ => resolve()) // Since our asyncParse will fail anyways, we convert to Promise.t<unit> for our catch later
     ->catch(e => {
       let success = switch e {
       | JsError(err) => Js.Exn.message(err) == Some("Unexpected token . in JSON at position 1")
@@ -219,8 +176,9 @@ module Catching = {
       }
       s
     })
-    ->map(msg => {
+    ->then(msg => {
       Test.run(__POS_OF__("Should be success"), msg, equal, "success")
+      resolve()
     })
   }
 
@@ -231,8 +189,8 @@ module Catching = {
     ->then(_ => {
       reject(TestError("test"))
     })
-    ->map(v => {
-      v
+    ->then(v => {
+      v->resolve
     })
     ->catch(_ => {
       ()
@@ -240,9 +198,10 @@ module Catching = {
     ->finally(() => {
       wasCalled := true
     })
-    ->map(v => {
+    ->then(v => {
       Test.run(__POS_OF__("value should be unit"), v, equal, ())
       Test.run(__POS_OF__("finally should have been called"), wasCalled.contents, equal, true)
+      resolve()
     })
     ->ignore
   }
@@ -251,15 +210,16 @@ module Catching = {
     open Promise
     let wasCalled = ref(false)
     resolve(5)
-    ->map(v => {
-      v + 5
+    ->then(v => {
+      resolve(v + 5)
     })
     ->finally(() => {
       wasCalled := true
     })
-    ->map(v => {
+    ->then(v => {
       Test.run(__POS_OF__("value should be 5"), v, equal, 10)
       Test.run(__POS_OF__("finally should have been called"), wasCalled.contents, equal, true)
+      resolve()
     })
     ->ignore
   }
@@ -293,9 +253,10 @@ module Concurrently = {
     let p2 = delayedMsg(500, "myName")
     let p3 = delayedMsg(100, "Hi")
 
-    all([p1, p2, p3])->map(arr => {
+    all([p1, p2, p3])->then(arr => {
       let exp = [(3, "is Anna"), (2, "myName"), (1, "Hi")]
       Test.run(__POS_OF__("Should have correct placing"), arr, equal, exp)
+      resolve()
     })
   }
 
@@ -312,8 +273,9 @@ module Concurrently = {
 
     let promises = [racer(1000, "Turtle"), racer(500, "Hare"), racer(100, "Eagle")]
 
-    race(promises)->map(winner => {
+    race(promises)->then(winner => {
       Test.run(__POS_OF__("Eagle should win"), winner, equal, "Eagle")
+      resolve()
     })
   }
 

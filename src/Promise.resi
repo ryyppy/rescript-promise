@@ -34,6 +34,8 @@ external reject: exn => t<_> = "reject"
 uncurried functions `resolve` and `reject` for defining the Promise's result.
 
 ```rescript
+open Promise
+
 let n = 4
 Promise.make((resolve, reject) => {
   if(n < 5) {
@@ -43,8 +45,8 @@ Promise.make((resolve, reject) => {
     reject(. \"failed\")
   }
 })
-->map(str => {
-  Js.log(str)
+->then(str => {
+  Js.log(str)->resolve
 })
 ->catch(e => {
   Js.log(\"Error occurred\")
@@ -56,37 +58,18 @@ Promise.make((resolve, reject) => {
 external make: ((@bs.uncurry (. 'a) => unit, (. 'e) => unit) => unit) => t<'a> = "Promise"
 
 @ocaml.doc("
-[map(promise, callback)] converts an encapsulated value of a promise into
-another promise wrapped value. Really useful if you don't want to chain multiple
-promise operations together.
-
-```rescript
-resolve(\"Anna\")
-->map(str => {
-  \"Hello \" ++ str
-})
-->map(str => {
-  Js.log(str)
-})
-->ignore // Ignore needed for side-effects
-```
-
-In case you want to return another promise in your `callback`,
-consider using \`then\` instead.
-")
-@bs.send
-external map: (t<'a>, @uncurry ('a => 'b)) => t<'b> = "then"
-
-@ocaml.doc("
 [catch(promise, errorCallback)] registers an exception handler in a promise chain.
 The `errorCallback` receives an `exn` value that can later be refined into a JS error or ReScript
 error.
 
 ```rescript
+open Promise
+
 exception SomeError(string)
+
 reject(SomeError(\"this is an error\"))
-->map(_ => {
-  Ok(\"This result will never be returned\")
+->then(_ => {
+  Ok(\"This result will never be returned\")->resolve
 })
 ->catch(e => {
   let msg = switch(e) {
@@ -94,18 +77,18 @@ reject(SomeError(\"this is an error\"))
     | JsError(obj) =>
       switch Js.Exn.message(obj) {
         | Some(msg) => \"JS exception occurred: \" ++ msg
-        | None => \"Some other JS value has been thrown: \" ++ obj
+        | None => \"Some other JS value has been thrown\"
       }
     | _ => \"Unexpected error occurred\"
   }
 
   Error(msg)
 })
-->map(result => {
+->then(result => {
   switch result {
   | Ok(r) => Js.log2(\"Operation successful: \", r)
   | Error(msg) => Js.log2(\"Operation failed: \", msg)
-  }
+  }->resolve
 })
 ->ignore // Ignore needed for side-effects
 ```
@@ -119,18 +102,19 @@ let catch: (t<'a>, exn => 'a) => t<'a>
 [then(promise, callback)] returns a new promise based on the result of `promise`'s value. 
 The `callback` needs to explicitly return a new promise via `resolve`.
 
+It is **not allowed** to resolve a nested promise (like `resolve(resolve(1))`).
+
 ```rescript
 Promise.resolve(5)
 ->then(num => {
   resolve(num + 5)
 })
-->map(num => {
-  Js.log2(\"Your lucky number is: \", num);
+->then(num => {
+  Js.log2(\"Your lucky number is: \", num)
+  resolve()
 })
 ->ignore
 ```
-
-In case you want to convert a promise's value to another value, consider using `map` instead.
 ")
 @bs.send
 external then: (t<'a>, @uncurry ('a => t<'b>)) => t<'b> = "then"
@@ -138,6 +122,7 @@ external then: (t<'a>, @uncurry ('a => t<'b>)) => t<'b> = "then"
 @ocaml.doc("
 [finally(promise, callback)] is used to execute a function that is called no matter if a promise
 was resolved or rejected. It will return the same `promise` it originally received.
+
 ```rescript
 exception SomeError(string)
 let isDone = ref(false)
@@ -146,8 +131,9 @@ resolve(5)
 ->then(_ => {
   reject(TestError(\"test\"))
 })
-->map(v => {
+->then(v => {
   Js.log2(\"final result\", v)
+  resolve()
 })
 ->catch(_ => {
   Js.log(\"Error handled\")
@@ -156,8 +142,9 @@ resolve(5)
   Js.log(\"finally\")
   isDone := true
 })
-->map(() => {
+->then(() => {
   Js.log2(\"isDone:\", isDone.contents)
+  resolve()
 })
 ->ignore
 ```
@@ -177,10 +164,12 @@ open Promise
 let promises = [resolve(1), resolve(2), resolve(3)]
 
 all(promises)
-->map((results) => {
+->then((results) => {
   Belt.Array.forEach(results, (num) => {
     Js.log2(\"Number: \", num)
   })
+
+  resolve()
 })
 ->ignore
 ```
