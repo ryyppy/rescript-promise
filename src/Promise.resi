@@ -190,35 +190,35 @@ all(promises)
 external all: array<t<'a>> => t<array<'a>> = "all"
 
 @ocaml.doc("
-[all(p1, p2)]. Like `all()`, but with a fixed size tuple of 2
+[all2((p1, p2))]. Like `all()`, but with a fixed size tuple of 2
 ")
 @bs.scope("Promise")
 @bs.val
 external all2: ((t<'a>, t<'b>)) => t<('a, 'b)> = "all"
 
 @ocaml.doc("
-[all(p1, p2)]. Like `all()`, but with a fixed size tuple of 3
+[all3((p1, p2, p3))]. Like `all()`, but with a fixed size tuple of 3
 ")
 @bs.scope("Promise")
 @bs.val
 external all3: ((t<'a>, t<'b>, t<'c>)) => t<('a, 'b, 'c)> = "all"
 
 @ocaml.doc("
-[all(p1, p2)]. Like `all()`, but with a fixed size tuple of 4
+[all4((p1, p2, p3, p4))]. Like `all()`, but with a fixed size tuple of 4
 ")
 @bs.scope("Promise")
 @bs.val
 external all4: ((t<'a>, t<'b>, t<'c>, t<'d>)) => t<('a, 'b, 'c, 'd)> = "all"
 
 @ocaml.doc("
-[all(p1, p2)]. Like `all()`, but with a fixed size tuple of 5
+[all5((p1, p2, p3, p4, p5))]. Like `all()`, but with a fixed size tuple of 5
 ")
 @bs.scope("Promise")
 @bs.val
 external all5: ((t<'a>, t<'b>, t<'c>, t<'d>, t<'e>)) => t<('a, 'b, 'c, 'd, 'e)> = "all"
 
 @ocaml.doc("
-[all(p1, p2)]. Like `all()`, but with a fixed size tuple of 6
+[all6((p1, p2, p4, p5, p6))]. Like `all()`, but with a fixed size tuple of 6
 ")
 @bs.scope("Promise")
 @bs.val
