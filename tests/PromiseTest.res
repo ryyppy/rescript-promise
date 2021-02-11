@@ -317,9 +317,139 @@ module Concurrently = {
     })
   }
 
+  let testParallel2 = () => {
+    open Promise
+
+    let place = ref(0)
+
+    let delayedMsg = (ms, msg) => {
+      Promise.make((resolve, _) => {
+        Js.Global.setTimeout(() => {
+          place := place.contents + 1
+          resolve(.(place.contents, msg))
+        }, ms)->ignore
+      })
+    }
+
+    let p1 = delayedMsg(1000, "is Anna")
+    let p2 = delayedMsg(500, "myName")
+
+    all2((p1, p2))->map(arr => {
+      let exp = ((2, "is Anna"), (1, "myName"))
+      Test.run(__POS_OF__("Should have correct placing"), arr, equal, exp)
+    })
+  }
+
+  let testParallel3 = () => {
+    open Promise
+
+    let place = ref(0)
+
+    let delayedMsg = (ms, msg) => {
+      Promise.make((resolve, _) => {
+        Js.Global.setTimeout(() => {
+          place := place.contents + 1
+          resolve(.(place.contents, msg))
+        }, ms)->ignore
+      })
+    }
+
+    let p1 = delayedMsg(1000, "is Anna")
+    let p2 = delayedMsg(500, "myName")
+    let p3 = delayedMsg(100, "Hi")
+
+    all3((p1, p2, p3))->map(arr => {
+      let exp = ((3, "is Anna"), (2, "myName"), (1, "Hi"))
+      Test.run(__POS_OF__("Should have correct placing"), arr, equal, exp)
+    })
+  }
+
+  let testParallel4 = () => {
+    open Promise
+
+    let place = ref(0)
+
+    let delayedMsg = (ms, msg) => {
+      Promise.make((resolve, _) => {
+        Js.Global.setTimeout(() => {
+          place := place.contents + 1
+          resolve(.(place.contents, msg))
+        }, ms)->ignore
+      })
+    }
+
+    let p1 = delayedMsg(1500, "Anna")
+    let p2 = delayedMsg(1000, "is")
+    let p3 = delayedMsg(500, "my name")
+    let p4 = delayedMsg(100, "Hi")
+
+    all4((p1, p2, p3, p4))->map(arr => {
+      let exp = ((4, "Anna"), (3, "is"), (2, "my name"), (1, "Hi"))
+      Test.run(__POS_OF__("Should have correct placing"), arr, equal, exp)
+    })
+  }
+
+  let testParallel5 = () => {
+    open Promise
+
+    let place = ref(0)
+
+    let delayedMsg = (ms, msg) => {
+      Promise.make((resolve, _) => {
+        Js.Global.setTimeout(() => {
+          place := place.contents + 1
+          resolve(.(place.contents, msg))
+        }, ms)->ignore
+      })
+    }
+
+    let p1 = delayedMsg(1500, "Anna")
+    let p2 = delayedMsg(1000, "is")
+    let p3 = delayedMsg(500, "name")
+    let p4 = delayedMsg(100, "my")
+    let p5 = delayedMsg(50, "Hi")
+
+    all5((p1, p2, p3, p4, p5))->map(arr => {
+      let exp = ((5, "Anna"), (4, "is"), (3, "name"), (2, "my"), (1, "Hi"))
+      Test.run(__POS_OF__("Should have correct placing"), arr, equal, exp)
+    })
+  }
+
+  let testParallel6 = () => {
+    open Promise
+
+    let place = ref(0)
+
+    let delayedMsg = (ms, msg) => {
+      Promise.make((resolve, _) => {
+        Js.Global.setTimeout(() => {
+          place := place.contents + 1
+          resolve(.(place.contents, msg))
+        }, ms)->ignore
+      })
+    }
+
+    let p1 = delayedMsg(1500, "Anna")
+    let p2 = delayedMsg(1000, "is")
+    let p3 = delayedMsg(500, "name")
+    let p4 = delayedMsg(100, "my")
+    let p5 = delayedMsg(50, ", ")
+    let p6 = delayedMsg(10, "Hi")
+
+    all6((p1, p2, p3, p4, p5, p6))->map(arr => {
+      let exp = ((6, "Anna"), (5, "is"), (4, "name"), (3, "my"), (2, ", "), (1, "Hi"))
+      Test.run(__POS_OF__("Should have correct placing"), arr, equal, exp)
+    })
+  }
+
   let runTests = () => {
     testParallel()->ignore
     testRace()->ignore
+    testParallel2()->ignore
+    testParallel3()->ignore
+    testParallel4()->ignore
+    testParallel5()->ignore
+    testParallel6()->ignore
   }
 }
 

@@ -9,7 +9,7 @@ external make: ((@bs.uncurry (. 'a) => unit, (. 'e) => unit) => unit) => t<'a> =
 @bs.val @bs.scope("Promise")
 external resolve: 'a => t<'a> = "resolve"
 
-@bs.send external then: (t<'a>, @uncurry 'a => t<'b>) => t<'b> = "then"
+@bs.send external then: (t<'a>, @uncurry ('a => t<'b>)) => t<'b> = "then"
 
 @bs.send external finally: (t<'a>, unit => unit) => t<'a> = "finally"
 
@@ -23,19 +23,19 @@ external reject: exn => t<_> = "reject"
 external all: array<t<'a>> => t<array<'a>> = "all"
 
 @bs.scope("Promise") @bs.val
-external all2: (t<'a>, t<'b>) => t<('a, 'b)> = "all"
+external all2: ((t<'a>, t<'b>)) => t<('a, 'b)> = "all"
 
 @bs.scope("Promise") @bs.val
-external all3: (t<'a>, t<'b>, t<'c>) => t<('a, 'b, 'c)> = "all"
+external all3: ((t<'a>, t<'b>, t<'c>)) => t<('a, 'b, 'c)> = "all"
 
 @bs.scope("Promise") @bs.val
-external all4: (t<'a>, t<'b>, t<'c>, t<'d>) => t<('a, 'b, 'c, 'd)> = "all"
+external all4: ((t<'a>, t<'b>, t<'c>, t<'d>)) => t<('a, 'b, 'c, 'd)> = "all"
 
 @bs.scope("Promise") @bs.val
-external all5: (t<'a>, t<'b>, t<'c>, t<'d>, t<'e>) => t<('a, 'b, 'c, 'd, 'e)> = "all"
+external all5: ((t<'a>, t<'b>, t<'c>, t<'d>, t<'e>)) => t<('a, 'b, 'c, 'd, 'e)> = "all"
 
 @bs.scope("Promise") @bs.val
-external all6: (t<'a>, t<'b>, t<'c>, t<'d>, t<'e>, t<'f>) => t<('a, 'b, 'c, 'd, 'e, 'f)> = "all"
+external all6: ((t<'a>, t<'b>, t<'c>, t<'d>, t<'e>, t<'f>)) => t<('a, 'b, 'c, 'd, 'e, 'f)> = "all"
 
 @bs.send
 external _catch: (t<'a>, @bs.uncurry (exn => 'b)) => t<'b> = "catch"

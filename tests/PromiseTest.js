@@ -437,15 +437,300 @@ function testRace(param) {
             });
 }
 
+function testParallel2(param) {
+  var place = {
+    contents: 0
+  };
+  var delayedMsg = function (ms, msg) {
+    return new Promise((function (resolve, param) {
+                  setTimeout((function (param) {
+                          place.contents = place.contents + 1 | 0;
+                          return resolve([
+                                      place.contents,
+                                      msg
+                                    ]);
+                        }), ms);
+                  
+                }));
+  };
+  var p1 = delayedMsg(1000, "is Anna");
+  var p2 = delayedMsg(500, "myName");
+  return Promise.all([
+                p1,
+                p2
+              ]).then(function (arr) {
+              return Test.run([
+                          [
+                            "PromiseTest.res",
+                            339,
+                            26,
+                            55
+                          ],
+                          "Should have correct placing"
+                        ], arr, equal, [
+                          [
+                            2,
+                            "is Anna"
+                          ],
+                          [
+                            1,
+                            "myName"
+                          ]
+                        ]);
+            });
+}
+
+function testParallel3(param) {
+  var place = {
+    contents: 0
+  };
+  var delayedMsg = function (ms, msg) {
+    return new Promise((function (resolve, param) {
+                  setTimeout((function (param) {
+                          place.contents = place.contents + 1 | 0;
+                          return resolve([
+                                      place.contents,
+                                      msg
+                                    ]);
+                        }), ms);
+                  
+                }));
+  };
+  var p1 = delayedMsg(1000, "is Anna");
+  var p2 = delayedMsg(500, "myName");
+  var p3 = delayedMsg(100, "Hi");
+  return Promise.all([
+                p1,
+                p2,
+                p3
+              ]).then(function (arr) {
+              return Test.run([
+                          [
+                            "PromiseTest.res",
+                            363,
+                            26,
+                            55
+                          ],
+                          "Should have correct placing"
+                        ], arr, equal, [
+                          [
+                            3,
+                            "is Anna"
+                          ],
+                          [
+                            2,
+                            "myName"
+                          ],
+                          [
+                            1,
+                            "Hi"
+                          ]
+                        ]);
+            });
+}
+
+function testParallel4(param) {
+  var place = {
+    contents: 0
+  };
+  var delayedMsg = function (ms, msg) {
+    return new Promise((function (resolve, param) {
+                  setTimeout((function (param) {
+                          place.contents = place.contents + 1 | 0;
+                          return resolve([
+                                      place.contents,
+                                      msg
+                                    ]);
+                        }), ms);
+                  
+                }));
+  };
+  var p1 = delayedMsg(1500, "Anna");
+  var p2 = delayedMsg(1000, "is");
+  var p3 = delayedMsg(500, "my name");
+  var p4 = delayedMsg(100, "Hi");
+  return Promise.all([
+                p1,
+                p2,
+                p3,
+                p4
+              ]).then(function (arr) {
+              return Test.run([
+                          [
+                            "PromiseTest.res",
+                            388,
+                            26,
+                            55
+                          ],
+                          "Should have correct placing"
+                        ], arr, equal, [
+                          [
+                            4,
+                            "Anna"
+                          ],
+                          [
+                            3,
+                            "is"
+                          ],
+                          [
+                            2,
+                            "my name"
+                          ],
+                          [
+                            1,
+                            "Hi"
+                          ]
+                        ]);
+            });
+}
+
+function testParallel5(param) {
+  var place = {
+    contents: 0
+  };
+  var delayedMsg = function (ms, msg) {
+    return new Promise((function (resolve, param) {
+                  setTimeout((function (param) {
+                          place.contents = place.contents + 1 | 0;
+                          return resolve([
+                                      place.contents,
+                                      msg
+                                    ]);
+                        }), ms);
+                  
+                }));
+  };
+  var p1 = delayedMsg(1500, "Anna");
+  var p2 = delayedMsg(1000, "is");
+  var p3 = delayedMsg(500, "name");
+  var p4 = delayedMsg(100, "my");
+  var p5 = delayedMsg(50, "Hi");
+  return Promise.all([
+                p1,
+                p2,
+                p3,
+                p4,
+                p5
+              ]).then(function (arr) {
+              return Test.run([
+                          [
+                            "PromiseTest.res",
+                            414,
+                            26,
+                            55
+                          ],
+                          "Should have correct placing"
+                        ], arr, equal, [
+                          [
+                            5,
+                            "Anna"
+                          ],
+                          [
+                            4,
+                            "is"
+                          ],
+                          [
+                            3,
+                            "name"
+                          ],
+                          [
+                            2,
+                            "my"
+                          ],
+                          [
+                            1,
+                            "Hi"
+                          ]
+                        ]);
+            });
+}
+
+function testParallel6(param) {
+  var place = {
+    contents: 0
+  };
+  var delayedMsg = function (ms, msg) {
+    return new Promise((function (resolve, param) {
+                  setTimeout((function (param) {
+                          place.contents = place.contents + 1 | 0;
+                          return resolve([
+                                      place.contents,
+                                      msg
+                                    ]);
+                        }), ms);
+                  
+                }));
+  };
+  var p1 = delayedMsg(1500, "Anna");
+  var p2 = delayedMsg(1000, "is");
+  var p3 = delayedMsg(500, "name");
+  var p4 = delayedMsg(100, "my");
+  var p5 = delayedMsg(50, ", ");
+  var p6 = delayedMsg(10, "Hi");
+  return Promise.all([
+                p1,
+                p2,
+                p3,
+                p4,
+                p5,
+                p6
+              ]).then(function (arr) {
+              return Test.run([
+                          [
+                            "PromiseTest.res",
+                            441,
+                            26,
+                            55
+                          ],
+                          "Should have correct placing"
+                        ], arr, equal, [
+                          [
+                            6,
+                            "Anna"
+                          ],
+                          [
+                            5,
+                            "is"
+                          ],
+                          [
+                            4,
+                            "name"
+                          ],
+                          [
+                            3,
+                            "my"
+                          ],
+                          [
+                            2,
+                            ", "
+                          ],
+                          [
+                            1,
+                            "Hi"
+                          ]
+                        ]);
+            });
+}
+
 function runTests$4(param) {
   testParallel(undefined);
   testRace(undefined);
+  testParallel2(undefined);
+  testParallel3(undefined);
+  testParallel4(undefined);
+  testParallel5(undefined);
+  testParallel6(undefined);
   
 }
 
 var Concurrently = {
   testParallel: testParallel,
   testRace: testRace,
+  testParallel2: testParallel2,
+  testParallel3: testParallel3,
+  testParallel4: testParallel4,
+  testParallel5: testParallel5,
+  testParallel6: testParallel6,
   runTests: runTests$4
 };
 
