@@ -133,7 +133,7 @@ Promise.resolve(5)
 In case you want to convert a promise's value to another value, consider using `map` instead.
 ")
 @bs.send
-external then: (t<'a>, @uncurry 'a => t<'b>) => t<'b> = "then"
+external then: (t<'a>, @uncurry ('a => t<'b>)) => t<'b> = "then"
 
 @ocaml.doc("
 [finally(promise, callback)] is used to execute a function that is called no matter if a promise
@@ -185,40 +185,41 @@ all(promises)
 ->ignore
 ```
 ")
-@bs.scope("Promise") @bs.val
+@bs.scope("Promise")
+@bs.val
 external all: array<t<'a>> => t<array<'a>> = "all"
 
 @ocaml.doc("
-[all(p1, p2)]. Like `all()`, but with a fixed size tuple of 2
+[all2((p1, p2))]. Like `all()`, but with a fixed size tuple of 2
 ")
 @bs.scope("Promise")
 @bs.val
-external all2: (t<'a>, t<'b>) => t<('a, 'b)> = "all"
+external all2: ((t<'a>, t<'b>)) => t<('a, 'b)> = "all"
 
 @ocaml.doc("
-[all(p1, p2)]. Like `all()`, but with a fixed size tuple of 3
+[all3((p1, p2, p3))]. Like `all()`, but with a fixed size tuple of 3
 ")
 @bs.scope("Promise")
 @bs.val
-external all3: (t<'a>, t<'b>, t<'c>) => t<('a, 'b, 'c)> = "all"
+external all3: ((t<'a>, t<'b>, t<'c>)) => t<('a, 'b, 'c)> = "all"
 
 @ocaml.doc("
-[all(p1, p2)]. Like `all()`, but with a fixed size tuple of 4
+[all4((p1, p2, p3, p4))]. Like `all()`, but with a fixed size tuple of 4
 ")
 @bs.scope("Promise")
 @bs.val
-external all4: (t<'a>, t<'b>, t<'c>, t<'d>) => t<('a, 'b, 'c, 'd)> = "all"
+external all4: ((t<'a>, t<'b>, t<'c>, t<'d>)) => t<('a, 'b, 'c, 'd)> = "all"
 
 @ocaml.doc("
-[all(p1, p2)]. Like `all()`, but with a fixed size tuple of 5
+[all5((p1, p2, p3, p4, p5))]. Like `all()`, but with a fixed size tuple of 5
 ")
 @bs.scope("Promise")
 @bs.val
-external all5: (t<'a>, t<'b>, t<'c>, t<'d>, t<'e>) => t<('a, 'b, 'c, 'd, 'e)> = "all"
+external all5: ((t<'a>, t<'b>, t<'c>, t<'d>, t<'e>)) => t<('a, 'b, 'c, 'd, 'e)> = "all"
 
 @ocaml.doc("
-[all(p1, p2)]. Like `all()`, but with a fixed size tuple of 6
+[all6((p1, p2, p4, p5, p6))]. Like `all()`, but with a fixed size tuple of 6
 ")
 @bs.scope("Promise")
 @bs.val
-external all6: (t<'a>, t<'b>, t<'c>, t<'d>, t<'e>, t<'f>) => t<('a, 'b, 'c, 'd, 'e, 'f)> = "all"
+external all6: ((t<'a>, t<'b>, t<'c>, t<'d>, t<'e>, t<'f>)) => t<('a, 'b, 'c, 'd, 'e, 'f)> = "all"
