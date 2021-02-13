@@ -1,3 +1,5 @@
+# master
+
 # v1.0
 
 **Breaking**
@@ -13,6 +15,10 @@ Promise.resolve(1)
 +    resolve(n + 1)
 +  })
 ```
+
+**Bug fixes**
+
+- Fixes an issue where `Promise.all*` are mapping to the wrong parameter list (should have been tuples, not variadic args)
 
 # v0.0.2
 
