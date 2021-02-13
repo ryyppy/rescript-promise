@@ -413,24 +413,25 @@ function testParallel2(param) {
                 p1,
                 p2
               ]).then(function (arr) {
-              return Test.run([
-                          [
-                            "PromiseTest.res",
-                            339,
-                            26,
-                            55
-                          ],
-                          "Should have correct placing"
-                        ], arr, equal, [
-                          [
-                            2,
-                            "is Anna"
-                          ],
-                          [
-                            1,
-                            "myName"
-                          ]
-                        ]);
+              Test.run([
+                    [
+                      "PromiseTest.res",
+                      301,
+                      26,
+                      55
+                    ],
+                    "Should have correct placing"
+                  ], arr, equal, [
+                    [
+                      2,
+                      "is Anna"
+                    ],
+                    [
+                      1,
+                      "myName"
+                    ]
+                  ]);
+              return Promise.resolve(undefined);
             });
 }
 
@@ -458,28 +459,29 @@ function testParallel3(param) {
                 p2,
                 p3
               ]).then(function (arr) {
-              return Test.run([
-                          [
-                            "PromiseTest.res",
-                            363,
-                            26,
-                            55
-                          ],
-                          "Should have correct placing"
-                        ], arr, equal, [
-                          [
-                            3,
-                            "is Anna"
-                          ],
-                          [
-                            2,
-                            "myName"
-                          ],
-                          [
-                            1,
-                            "Hi"
-                          ]
-                        ]);
+              Test.run([
+                    [
+                      "PromiseTest.res",
+                      326,
+                      26,
+                      55
+                    ],
+                    "Should have correct placing"
+                  ], arr, equal, [
+                    [
+                      3,
+                      "is Anna"
+                    ],
+                    [
+                      2,
+                      "myName"
+                    ],
+                    [
+                      1,
+                      "Hi"
+                    ]
+                  ]);
+              return Promise.resolve(undefined);
             });
 }
 
@@ -509,32 +511,33 @@ function testParallel4(param) {
                 p3,
                 p4
               ]).then(function (arr) {
-              return Test.run([
-                          [
-                            "PromiseTest.res",
-                            388,
-                            26,
-                            55
-                          ],
-                          "Should have correct placing"
-                        ], arr, equal, [
-                          [
-                            4,
-                            "Anna"
-                          ],
-                          [
-                            3,
-                            "is"
-                          ],
-                          [
-                            2,
-                            "my name"
-                          ],
-                          [
-                            1,
-                            "Hi"
-                          ]
-                        ]);
+              Test.run([
+                    [
+                      "PromiseTest.res",
+                      352,
+                      26,
+                      55
+                    ],
+                    "Should have correct placing"
+                  ], arr, equal, [
+                    [
+                      4,
+                      "Anna"
+                    ],
+                    [
+                      3,
+                      "is"
+                    ],
+                    [
+                      2,
+                      "my name"
+                    ],
+                    [
+                      1,
+                      "Hi"
+                    ]
+                  ]);
+              return Promise.resolve(undefined);
             });
 }
 
@@ -566,36 +569,37 @@ function testParallel5(param) {
                 p4,
                 p5
               ]).then(function (arr) {
-              return Test.run([
-                          [
-                            "PromiseTest.res",
-                            414,
-                            26,
-                            55
-                          ],
-                          "Should have correct placing"
-                        ], arr, equal, [
-                          [
-                            5,
-                            "Anna"
-                          ],
-                          [
-                            4,
-                            "is"
-                          ],
-                          [
-                            3,
-                            "name"
-                          ],
-                          [
-                            2,
-                            "my"
-                          ],
-                          [
-                            1,
-                            "Hi"
-                          ]
-                        ]);
+              Test.run([
+                    [
+                      "PromiseTest.res",
+                      379,
+                      26,
+                      55
+                    ],
+                    "Should have correct placing"
+                  ], arr, equal, [
+                    [
+                      5,
+                      "Anna"
+                    ],
+                    [
+                      4,
+                      "is"
+                    ],
+                    [
+                      3,
+                      "name"
+                    ],
+                    [
+                      2,
+                      "my"
+                    ],
+                    [
+                      1,
+                      "Hi"
+                    ]
+                  ]);
+              return Promise.resolve(undefined);
             });
 }
 
@@ -629,40 +633,41 @@ function testParallel6(param) {
                 p5,
                 p6
               ]).then(function (arr) {
-              return Test.run([
-                          [
-                            "PromiseTest.res",
-                            441,
-                            26,
-                            55
-                          ],
-                          "Should have correct placing"
-                        ], arr, equal, [
-                          [
-                            6,
-                            "Anna"
-                          ],
-                          [
-                            5,
-                            "is"
-                          ],
-                          [
-                            4,
-                            "name"
-                          ],
-                          [
-                            3,
-                            "my"
-                          ],
-                          [
-                            2,
-                            ", "
-                          ],
-                          [
-                            1,
-                            "Hi"
-                          ]
-                        ]);
+              Test.run([
+                    [
+                      "PromiseTest.res",
+                      407,
+                      26,
+                      55
+                    ],
+                    "Should have correct placing"
+                  ], arr, equal, [
+                    [
+                      6,
+                      "Anna"
+                    ],
+                    [
+                      5,
+                      "is"
+                    ],
+                    [
+                      4,
+                      "name"
+                    ],
+                    [
+                      3,
+                      "my"
+                    ],
+                    [
+                      2,
+                      ", "
+                    ],
+                    [
+                      1,
+                      "Hi"
+                    ]
+                  ]);
+              return Promise.resolve(undefined);
             });
 }
 
