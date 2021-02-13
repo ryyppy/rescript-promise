@@ -8,10 +8,10 @@
 // https://caml.inria.fr/pub/docs/manual-ocaml/polymorphism.html#ss:variance:abstract-data-types
 type t<+'a> = Js.Promise.t<'a>
 
-// JsError is currently a shim exception and will be deprecated for future
-// ReScript versions.
+// JsError is currently a shim exception and will be deprecated for
+// ReScript version >= 9.0.
 //
-// See following merged PR in the compiler (waiting for next version release):
+// See following merged compiler PR for more context:
 // https://github.com/rescript-lang/rescript-compiler/pull/4905
 exception JsError(Js.Exn.t)
 
