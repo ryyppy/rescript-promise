@@ -28,24 +28,23 @@ function login(email, password) {
                     return res.json();
                   }).then(function (data) {
                   var msg = data.error;
-                  if (!(msg == null)) {
-                    return {
-                            TAG: /* Error */1,
-                            _0: msg
-                          };
-                  }
-                  var token = data.token;
-                  if (token == null) {
-                    return {
-                            TAG: /* Error */1,
-                            _0: "Didn't return a token"
-                          };
+                  var tmp;
+                  if (msg == null) {
+                    var token = data.token;
+                    tmp = (token == null) ? ({
+                          TAG: /* Error */1,
+                          _0: "Didn't return a token"
+                        }) : ({
+                          TAG: /* Ok */0,
+                          _0: token
+                        });
                   } else {
-                    return {
-                            TAG: /* Ok */0,
-                            _0: token
-                          };
+                    tmp = {
+                      TAG: /* Error */1,
+                      _0: msg
+                    };
                   }
+                  return Promise.resolve(tmp);
                 }), (function (e) {
                 var msg;
                 if (e.RE_EXN_ID === $$Promise.JsError) {
@@ -74,10 +73,10 @@ function getProducts(token, param) {
                   }).then(function (data) {
                   var data$1 = data.data;
                   var ret = (data$1 == null) ? [] : data$1;
-                  return {
-                          TAG: /* Ok */0,
-                          _0: ret
-                        };
+                  return Promise.resolve({
+                              TAG: /* Ok */0,
+                              _0: ret
+                            });
                 }), (function (e) {
                 var msg;
                 if (e.RE_EXN_ID === $$Promise.JsError) {
@@ -109,15 +108,18 @@ $$Promise.$$catch(login("emma.wong@reqres.in", "pw").then(function (ret) {
             console.log("Login successful! Querying data...");
             return getProducts(ret._0, undefined);
           }).then(function (result) {
+          var tmp;
           if (result.TAG === /* Ok */0) {
             console.log("\nAvailable Products:\n---");
-            return Belt_Array.forEach(result._0, (function (p) {
-                          console.log(String(p.id) + " - " + p.name);
-                          
-                        }));
+            tmp = Belt_Array.forEach(result._0, (function (p) {
+                    console.log(String(p.id) + " - " + p.name);
+                    
+                  }));
+          } else {
+            console.log("Could not query products: " + result._0);
+            tmp = undefined;
           }
-          console.log("Could not query products: " + result._0);
-          
+          return Promise.resolve(tmp);
         }), (function (e) {
         if (e.RE_EXN_ID === FailedRequest) {
           console.log("Operation failed! " + e._1);

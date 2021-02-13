@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "node tests/PromiseTest.js",
+    "build": "bsb -make-world",
     "watch": "bsb -make-world -w"
   },
   "files": [

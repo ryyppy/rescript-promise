@@ -13,9 +13,6 @@ external resolve: 'a => t<'a> = "resolve"
 
 @bs.send external finally: (t<'a>, unit => unit) => t<'a> = "finally"
 
-@bs.send
-external map: (t<'a>, @uncurry ('a => 'b)) => t<'b> = "then"
-
 @bs.scope("Promise") @bs.val
 external reject: exn => t<_> = "reject"
 

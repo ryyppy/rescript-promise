@@ -1,6 +1,6 @@
 # rescript-promise
 
-This is a proposal for a better ReScript promise binding which aims to be as close to JS workflows as possible. It will be part of the official ReScript compiler if it proofs itself to be useful (aka. replacing the old `Js.Promise`).
+This is a proposal for replacing the original `Js.Promise` binding that is shipped within the ReScript compiler. It will be upstreamed as `Js.Promise2` soon. This binding was made to allow our users to try out the implementation in their codebases first.
 
 > See the [PROPOSAL.md](./PROPOSAL.md) for the rationale and design decisions.
 
@@ -9,9 +9,8 @@ This is a proposal for a better ReScript promise binding which aims to be as clo
 - `t-first` bindings
 - Fully compatible with the builtin `Js.Promise.t` type
 - `make` for creating a new promise with a `(resolve, reject) => {}` callback
-- `resolve` for creating a resolved promise with an arbitrary value
+- `resolve` for creating a resolved promise
 - `reject` for creating a rejected promise
-- `map` for transforming values within a promise chain
 - `catch` for catching any JS or ReScript errors (all represented as an `exn` value)
 - `then` for chaining functions that return another promise
 - `all` and `race` for running promises concurrently
@@ -25,8 +24,8 @@ This is a proposal for a better ReScript promise binding which aims to be as clo
 
 **Caveats:**
 
-- There are 2 edge-cases where returning a `Promise.t<Promise.t<'a>>` value within `then` / `map` is not runtime safe (but also quite nonsensical). Refer to the [Common Mistakes](#common-mistakes) section for details.
-- These edge-cases shouldn't happen in day to day use, also, for those who have general concerns of runtime safetiness, should use a `catch` call in the end of each promise chain anyways
+- There is exactly one edge-case where returning a `Promise.t<Promise.t<'a>>` value within `then` is not runtime safe (but also quite nonsensical). Refer to the [Common Mistakes](#common-mistakes) section for details.
+- This edge-case shouldn't happen in day to day use, also, for those who have general concerns of runtime safetiness, should use a `catch` call in the end of each promise chain anyways
 
 ## Requirements
 
@@ -58,6 +57,9 @@ This will expose a global `Promise` module (don't worry, it will not mess with y
 
 ```rescript
 let p1 = Promise.make((resolve, _reject) => {
+  
+  // We use uncurried functions for resolve / reject
+  // for cleaner JS output without unintended curry calls
   resolve(. "hello world")
 })
 
@@ -73,9 +75,15 @@ let p3 = Promise.reject(MyOwnError("some rejection"))
 ```rescript
 open Promise
 Promise.resolve("hello world")
-->map(msg => {
-  // `map` allows the transformation of a nested promise value
-  Js.log("Message: " ++ msg)
+->then(msg => {
+  // then callbacks require the result to be resolved explicitly
+  resolve("Message: " ++ msg)
+})
+->then(msg => {
+  Js.log(msg);
+
+  // Even if there is no result, we need to use resolve() to return a promise
+  resolve()
 })
 ->ignore // Requires ignoring due to unhandled return value
 ```
@@ -83,29 +91,46 @@ Promise.resolve("hello world")
 **Chain promises:**
 
 ```rescript
-type user = {"name": string}
-type comment = string
-@val external queryComments: string => Js.Promise.t<array<comment>> = "API.queryComments"
-@val external queryUser: string => Js.Promise.t<user> = "API.queryUser"
-
 open Promise
 
-queryUser("patrick")
+type user = {"name": string}
+type comment = string
+
+// mock function
+let queryComments = (username: string): Js.Promise.t<array<comment>> => {
+  switch username {
+  | "patrick" => ["comment 1", "comment 2"]
+  | _ => []
+  }->resolve
+}
+
+// mock function
+let queryUser = (_: string): Js.Promise.t<user> => {
+  resolve({"name": "patrick"})
+}
+
+let queryUser = queryUser("u1")
 ->then(user => {
-  // We use `then` instead of `map` to automatically
+  // We use `then` to automatically
   // unnest our queryComments promise
   queryComments(user["name"])
 })
-->map(comments => {
+->then(comments => {
   // comments is now an array<comment>
   Belt.Array.forEach(comments, comment => Js.log(comment))
+
+  // Output:
+  // comment 1
+  // comment 2
+
+  resolve()
 })
 ->ignore
 ```
 
 **Catch promise errors:**
 
-**Important:** `catch` needs to return the same return value as its previous `then` / `map` call (e.g. if you pass a `promise` of type `Promise.t<int>`, you need to return an `int` in your `catch` callback).
+**Important:** `catch` needs to return the same return value as its previous `then` call (e.g. if you pass a `promise` of type `Promise.t<int>`, you need to return an `int` in your `catch` callback). This usually implies that you'll need to use a `result` value to express successful / unsuccessful operations:
 
 ```rescript
 exception MyError(string)
@@ -113,23 +138,28 @@ exception MyError(string)
 open Promise
 
 Promise.reject(MyError("test"))
-->map(str => {
+->then(str => {
   Js.log("this should not be reached: " ++ str)
-  Ok("successful")
+
+  // Here we use the builtin `result` constructor `Ok`
+  Ok("successful")->resolve
 })
 ->catch(e => {
   let err = switch e {
   | MyError(str) => "found MyError: " ++ str
   | _ => "Some unknown error"
   }
+
+  // Here we are using the same type (`result`) as in the previous `then` call
   Error(err)
 })
-->map(result => {
+->then(result => {
   let msg = switch result {
   | Ok(str) => "Successful: " ++ str
   | Error(msg) => "Error: " ++ msg
   }
   Js.log(msg)
+  resolve()
 })
 ->ignore
 ```
@@ -140,11 +170,11 @@ Promise.reject(MyError("test"))
 open Promise
 
 let causeErr = () => {
-  Js.Exn.raiseError("Some JS error")
+  Js.Exn.raiseError("Some JS error")->resolve
 }
 
 Promise.resolve()
-->map(_ => {
+->then(_ => {
   causeErr()
 })
 ->catch(e => {
@@ -156,6 +186,7 @@ Promise.resolve()
     }
   | _ => Js.log("Some unknown error")
   }
+  // Outputs: Some JS error msg: Some JS error
 })
 ->ignore
 ```
@@ -181,14 +212,14 @@ let causeReScriptErr = () => {
 open Promise
 
 resolve()
-->map(_ => {
+->then(_ => {
   // We simulate a promise that either throws
   // a ReScript error, or JS error
   if generateRandomInt() > 5 {
     causeReScriptErr()
   } else {
     causeJsErr()
-  }
+  }->resolve
 })
 ->catch(e => {
   switch e {
@@ -204,12 +235,14 @@ resolve()
 ->ignore
 ```
 
-**Using a promise from JS:**
+**Using a promise from JS (interop):**
 
 ```rescript
+open Promise
+
 @val external someAsyncApi: unit => Js.Promise.t<string> = "someAsyncApi"
 
-someAsyncApi()->Promise.map((str) => Js.log(str))->ignore
+someAsyncApi()->Promise.then((str) => Js.log(str)->resolve)->ignore
 ```
 
 **Running multiple Promises concurrently:**
@@ -232,15 +265,18 @@ let p1 = delayedMsg(1000, "is Anna")
 let p2 = delayedMsg(500, "myName")
 let p3 = delayedMsg(100, "Hi")
 
-all([p1, p2, p3])->map(arr => {
-  // [ [ 3, 'is Anna' ], [ 2, 'myName' ], [ 1, 'Hi' ] ]
-  Belt.Array.map(arr, ((place, name)) => {
+all([p1, p2, p3])->then(arr => {
+  // arr = [ [ 3, 'is Anna' ], [ 2, 'myName' ], [ 1, 'Hi' ] ]
+
+  Belt.Array.forEach(arr, ((place, name)) => {
     Js.log(`Place ${Belt.Int.toString(place)} => ${name}`)
   })
-  // Output
+  // forEach output:
   // Place 3 => is Anna
   // Place 2 => myName
   // Place 1 => Hi
+
+  resolve()
 })
 ->ignore
 ```
@@ -261,36 +297,14 @@ let racer = (ms, name) => {
 let promises = [racer(1000, "Turtle"), racer(500, "Hare"), racer(100, "Eagle")]
 
 race(promises)
-->map(winner => {
-  Js.log("Congrats: " ++ winner)
+->then(winner => {
+  Js.log("Congrats: " ++ winner)->resolve
   // Congrats: Eagle
 })
 ->ignore
 ```
 
 ## Common Mistakes
-
-**Don't return a `Promise.t<'a>` within a `map` callback:**
-
-```rescript
-open Promise
-
-resolve(1) ->map((value: int) => {
-
-    // BAD: This will cause a Promise.t<Promise.t<'a>>
-    resolve(value)
-  })
-  ->map((p: Promise.t<int>) => {
-    // p is marked as a Promise, but it's actually an int
-    // so this code will fail
-    p->map((n) => Js.log(n))->ignore
-  })
-  ->catch((e) => {
-    Js.log("luckily, our mistake will be caught here");
-    // e: p.then is not a function
-  })
-  ->ignore
-```
 
 **Don't return a `Promise.t<Promise.t<'a>>` within a `then` callback:**
 
@@ -304,10 +318,10 @@ resolve(1)
     // BAD: this will cause a Promise.t<Promise.t<'a>>
     resolve(someOtherPromise)
   })
-  ->map((p: Promise.t<int>) => {
+  ->then((p: Promise.t<int>) => {
     // p is marked as a Promise, but it's actually an int
     // so this code will fail
-    p->map((n) => Js.log(n))->ignore
+    p->then((n) => Js.log(n)->resolve)->ignore
   })
   ->catch((e) => {
     Js.log("luckily, our mistake will be caught here");

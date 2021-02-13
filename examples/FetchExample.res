@@ -66,7 +66,7 @@ module Login = {
     ->then(res => {
       Response.json(res)
     })
-    ->map(data => {
+    ->then(data => {
       // Notice our pattern match on the "error" / "token" fields
       // to determine the final result. Be aware that this logic highly
       // depends on the backend specificiation.
@@ -77,7 +77,7 @@ module Login = {
         | Some(token) => Ok(token)
         | None => Error("Didn't return a token")
         }
-      }
+      }->resolve
     })
     ->catch(e => {
       let msg = switch e {
@@ -111,12 +111,12 @@ module Product = {
     ->then(res => {
       res->Response.json
     })
-    ->map(data => {
+    ->then(data => {
       let ret = switch Js.Nullable.toOption(data["data"]) {
       | Some(data) => data
       | None => []
       }
-      Ok(ret)
+      Ok(ret)->resolve
     })
     ->catch(e => {
       let msg = switch e {
@@ -145,7 +145,7 @@ let _ = {
     | Error(msg) => reject(FailedRequest("Login error - " ++ msg))
     }
   })
-  ->map(result => {
+  ->then(result => {
     switch result {
     | Ok(products) =>
       Js.log("\nAvailable Products:\n---")
@@ -153,7 +153,7 @@ let _ = {
         Js.log(`${Belt.Int.toString(p.id)} - ${p.name}`)
       })
     | Error(msg) => Js.log("Could not query products: " ++ msg)
-    }
+    }->resolve
   })
   ->catch(e => {
     switch e {

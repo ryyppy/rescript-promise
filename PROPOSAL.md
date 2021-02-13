@@ -1,4 +1,6 @@
-# rescript-promise Design
+# Js.Promise2 Design
+
+This document proposes the implementation of the `Js.Promise2` binding to replace `Js.Promise` in the future.
 
 ## Introduction
 
@@ -51,21 +53,17 @@ myPromise
     resolve(value)
   })
   // we also offer a `map` function that spares as the extra `resolve` call
-  ->map(value => {
-    value + 1
+  ->then(value => {
+    resolve(value + 1)
   })
-  ->map(value => {
+  ->then(value => {
     Js.log(value) // logs 3
+    resolve()
   })
   ->ignore
 ```
 
-We introduce two functions, `then` and `map`, whereas...
-
-- `then` is being used to provide a callbacks that **returns another promise**
-- `map` is being used to provide a callback that transforms a value within a Promise chain.
-
-Please note how we also changed the name from `Js.Promise.then_` to `Promise.then`. In ReScript, `then` is not a keyword, so it's perfectly fine to be used as a function name here.
+Please note how we changed the name from `Js.Promise.then_` to `Promise.then`. In ReScript, `then` is not a keyword, so it's perfectly fine to be used as a function name here.
 
 ### 2) Error Handling
 
@@ -115,7 +113,7 @@ Promise.reject(MyError("test"))
   })
 ```
 
-In future ReScript versions, the `Promise.JsError` exception will be deprecated in favor of the builtin `Js.Exn.Error` exception:
+Starting from ReScript v9 and above, the `Promise.JsError` exception will be deprecated in favor of the builtin `Js.Exn.Error` exception:
 
 ```rescript
 // In this version, like in a synchronous try / catch block with mixed
@@ -138,49 +136,29 @@ Promise.reject(MyError("test"))
 
 The proposed solution takes the burden of classifying the `Js.Promise.error` value, and allows for a similar pattern match as in a normal try / catch block, as explained in our [exception docs](https://rescript-lang.org/docs/manual/latest/exception#catch-both-rescript-and-js-exceptions-in-the-same-catch-clause).
 
-
 ## Nested Promises Issue Trade-offs
 
-As previously mentioned, right now there are two edge cases in our proposed API that allow a potential runtime error, due to the way nested promises auto-collapse in the JS runtime (which is not correctly reflected by the type system).
+As previously mentioned, right now there is an edge-case in our proposed API that allow a potential runtime error, due to the way nested promises auto-collapse in the JS runtime (which is not correctly reflected by the type system).
 
 To get more into detail: In JS whenever you return a promise within a promise chain, `then(() => Promise.resolve(somePromise))` will actually pass down the value that’s inside `somePromise`, instead of passing the nested promise (`Promise.t<Promise.t<'value>>`). This causes the type system to report a different type than the runtime, ultimately causing runtime errors.
 
-**Here are the two edge cases demonstrated with our proposed API:**
+**Here is a simple demonstration of our edge-case:**
 
 ```rescript
 open Promise
 
-// SCENARIO ONE: resolve a nested promise within `then`
+// NOTE: This code will cause a runtime error that will be caught by catch
 
-resolve(1) ->map((value: int) => {
+// SCENARIO: resolve a nested promise within `then`
+resolve(1)->then((value: int) => {
     // BAD: This will cause a Promise.t<Promise.t<'a>>
-    resolve(value)
+    resolve(resolve(value))
   })
-  ->map((p: Promise.t<int>) => {
+  ->then((p: Promise.t<int>) => {
     // p is marked as a Promise, but it's actually an int
     // so this code will fail
-    p->map((n) => Js.log(n))->ignore
-  })
-  ->catch((e) => {
-    Js.log("luckily, our mistake will be caught here");
-    // e: p.then is not a function
-  })
-  ->ignore
-
-
-// SCENARIO TWO: Resolve a promise within `map`
-
-resolve(1)
-  ->then((value: int) => {
-    let someOtherPromise = resolve(2)
-
-    // BAD: this will cause a Promise.t<Promise.t<'a>>
-    resolve(someOtherPromise)
-  })
-  ->map((p: Promise.t<int>) => {
-    // p is marked as a Promise, but it's actually an int
-    // so this code will fail
-    p->map((n) => Js.log(n))->ignore
+    p->then((n) => Js.log(n)->resolve)->ignore
+    resolve()
   })
   ->catch((e) => {
     Js.log("luckily, our mistake will be caught here");
@@ -193,7 +171,7 @@ This topic is not new, and has been solved by different alternative libraries in
 
 ### Why we think the "nested promises" problem is not worth solving
 
-The only way to solve this problem with relatively low effort is by introducing a small runtime layer on top of our Promise resolving mechanism. This runtime would detect resolved promises (nested promises), and put them in a opaque container, so that the JS runtime is not able to auto-collapse the value. Later on when we `then` / `map` on the resulting data, it will be unwrapped again.
+The only way to solve this problem with relatively low effort is by introducing a small runtime layer on top of our Promise resolving mechanism. This runtime would detect resolved promises (nested promises), and put them in a opaque container, so that the JS runtime is not able to auto-collapse the value. Later on when we `then` chain on the resulting data, it will be unwrapped again.
 
 In our design process, we implemented both, a runtime version, and a non-runtime version. In the beginning the small runtime overhead didn't feel like such a burden, but after building some real-world examples, we realized that a common usage path seldomly triggers the edge-case.
 
@@ -207,25 +185,26 @@ Readable and predictable JS output is probably the most important one, because o
 
 The previously mentioned `reason-promise` tries to tackle all of this dirty edge-cases on multiple levels, but this comes with a complexity cost of introducing two different types to differentiate between `rejectable` and `non-rejectable` promises. This introduces a non-trivial amount of mental overhead, where users are forced to continously categorize between different promises, even if the underlying data structure is the same.
 
-We think it's more practical to just teach one simple `then`, `map`, `all`, `race`, `finally` API, and then tell our users to use a final `catch` on each promise chain, to always be on the runtime safe side even if they make mistakes with our aforementioned edge-cases.
+We think it's more practical to just teach one simple `then`, `all`, `race`, `finally` API, and then tell our users to use a final `catch` on each promise chain, to always be on the runtime safe side even if they make mistakes with our aforementioned edge-cases.
 
 Also, it is pretty hard to get into the edge-case, since there are different warning flags that you are doing something wrong, e.g.:
-
 
 ```rescript
 @val external queryUsers: unit => Promise.t<array<string>> = "queryUsers"
 
 open Promise
 resolve(1)
-  ->map(value => {
+  ->then(value => {
     // Let's assume we return a promise here, even though we are not supposed to
-    queryUsers()
+    resolve(queryUsers())
   })
   // This will cause the next value to be a `Promise.t<int>`, which is not true, because in the JS runtime, it's just an `int`
-  ->map((value: Promise.t<array<string>>) => {
-    // Now the consumer would be forced to use a `map` within a `map`, which seems unintuitive.
-    // The correct way would have been to use a `then` function instead of the `previous` map
-    value->map((v) => {
+  ->then((value: Promise.t<array<string>>) => {
+    // Now the consumer would be forced to use a `then` within a `then`, which seems unintuitive.
+    // The correct way would have been to not use a `resolve` on our `queryUsers` call in the `then` before
+    value->then((v) => {
+      Js.log(v)
+      resolve()
       })
   })
   ->catch((e) => {
