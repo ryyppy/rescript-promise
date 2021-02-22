@@ -1,5 +1,7 @@
 # master
 
+# v2.0
+
 **Breaking**
 
 - `catch` was not aligned with `then` and didn't return a `t<'a>`. This change forces users to resolve a value within a `catch` callback.
