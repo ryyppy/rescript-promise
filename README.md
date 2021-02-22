@@ -150,8 +150,8 @@ Promise.reject(MyError("test"))
   | _ => "Some unknown error"
   }
 
-  // Here we are using the same type (`result`) as in the previous `then` call
-  Error(err)
+  // Here we are using the same type (`t<result>`) as in the previous `then` call
+  Error(err)->resolve
 })
 ->then(result => {
   let msg = switch result {
@@ -186,6 +186,7 @@ Promise.resolve()
     }
   | _ => Js.log("Some unknown error")
   }
+  resolve()
   // Outputs: Some JS error msg: Some JS error
 })
 ->ignore
@@ -231,6 +232,7 @@ resolve()
     }
   | _ => Js.log("Some unknown error")
   }
+  resolve()
 })
 ->ignore
 ```
@@ -313,7 +315,7 @@ open Promise
 
 resolve(1)
   ->then((value: int) => {
-    let someOtherPromise = resolve(2)
+    let someOtherPromise = resolve(value + 2)
 
     // BAD: this will cause a Promise.t<Promise.t<'a>>
     resolve(someOtherPromise)
@@ -321,11 +323,13 @@ resolve(1)
   ->then((p: Promise.t<int>) => {
     // p is marked as a Promise, but it's actually an int
     // so this code will fail
-    p->then((n) => Js.log(n)->resolve)->ignore
+    p->then((n) => Js.log(n)->resolve)
   })
   ->catch((e) => {
     Js.log("luckily, our mistake will be caught here");
-    // e: p.then is not a function
+    Js.log(e)
+    // p.then is not a function
+    resolve()
   })
   ->ignore
 ```

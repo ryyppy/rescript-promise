@@ -35,7 +35,7 @@ external all5: ((t<'a>, t<'b>, t<'c>, t<'d>, t<'e>)) => t<('a, 'b, 'c, 'd, 'e)> 
 external all6: ((t<'a>, t<'b>, t<'c>, t<'d>, t<'e>, t<'f>)) => t<('a, 'b, 'c, 'd, 'e, 'f)> = "all"
 
 @bs.send
-external _catch: (t<'a>, @bs.uncurry (exn => 'b)) => t<'b> = "catch"
+external _catch: (t<'a>, @bs.uncurry (exn => t<'a>)) => t<'a> = "catch"
 
 let catch = (promise, callback) => {
   _catch(promise, err => {

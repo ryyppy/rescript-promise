@@ -75,15 +75,16 @@ function testInvalidThen(param) {
                   return Promise.resolve(undefined);
                 }), (function (e) {
                 var ret = e.RE_EXN_ID === $$Promise.JsError ? e._1.message === "p.then is not a function" : false;
-                return Test.run([
-                            [
-                              "PromiseTest.res",
-                              66,
-                              26,
-                              60
-                            ],
-                            "then should have thrown an error"
-                          ], ret, equal, true);
+                Test.run([
+                      [
+                        "PromiseTest.res",
+                        66,
+                        26,
+                        60
+                      ],
+                      "then should have thrown an error"
+                    ], ret, equal, true);
+                return Promise.resolve(undefined);
               }));
 }
 
@@ -104,18 +105,19 @@ function testExnRejection(param) {
             RE_EXN_ID: TestError,
             _1: "oops"
           }), (function (e) {
-          return Test.run([
-                      [
-                        "PromiseTest.res",
-                        85,
-                        26,
-                        30
-                      ],
-                      "Expect rejection to contain a TestError"
-                    ], e, equal, {
-                      RE_EXN_ID: TestError,
-                      _1: "oops"
-                    });
+          Test.run([
+                [
+                  "PromiseTest.res",
+                  86,
+                  26,
+                  30
+                ],
+                "Expect rejection to contain a TestError"
+              ], e, equal, {
+                RE_EXN_ID: TestError,
+                _1: "oops"
+              });
+          return Promise.resolve(undefined);
         }));
   
 }
@@ -142,15 +144,16 @@ function testExternalPromiseThrow(param) {
                   return Promise.resolve(undefined);
                 }), (function (e) {
                 var success = e.RE_EXN_ID === $$Promise.JsError ? Caml_obj.caml_equal(e._1.message, "Unexpected token . in JSON at position 1") : false;
-                return Test.run([
-                            [
-                              "PromiseTest.res",
-                              118,
-                              26,
-                              76
-                            ],
-                            "Should be a parser error with Unexpected token ."
-                          ], success, equal, true);
+                Test.run([
+                      [
+                        "PromiseTest.res",
+                        120,
+                        26,
+                        76
+                      ],
+                      "Should be a parser error with Unexpected token ."
+                    ], success, equal, true);
+                return Promise.resolve(undefined);
               }));
 }
 
@@ -163,15 +166,16 @@ function testExnThrow(param) {
                       };
                 }), (function (e) {
                 var isTestErr = e.RE_EXN_ID === TestError && e._1 === "Thrown exn" ? true : false;
-                return Test.run([
-                            [
-                              "PromiseTest.res",
-                              136,
-                              26,
-                              49
-                            ],
-                            "Should be a TestError"
-                          ], isTestErr, equal, true);
+                Test.run([
+                      [
+                        "PromiseTest.res",
+                        139,
+                        26,
+                        49
+                      ],
+                      "Should be a TestError"
+                    ], isTestErr, equal, true);
+                return Promise.resolve(undefined);
               }));
 }
 
@@ -180,15 +184,16 @@ function testRaiseErrorThrow(param) {
                   return Js_exn.raiseError("Some JS error");
                 }), (function (e) {
                 var isTestErr = e.RE_EXN_ID === $$Promise.JsError ? Caml_obj.caml_equal(e._1.message, "Some JS error") : false;
-                return Test.run([
-                            [
-                              "PromiseTest.res",
-                              158,
-                              26,
-                              51
-                            ],
-                            "Should be some JS error"
-                          ], isTestErr, equal, true);
+                Test.run([
+                      [
+                        "PromiseTest.res",
+                        162,
+                        26,
+                        51
+                      ],
+                      "Should be some JS error"
+                    ], isTestErr, equal, true);
+                return Promise.resolve(undefined);
               }));
 }
 
@@ -199,16 +204,14 @@ function thenAfterCatch(param) {
                                 _1: "some rejected value"
                               });
                   }), (function (e) {
-                  if (e.RE_EXN_ID === TestError && e._1 === "some rejected value") {
-                    return "success";
-                  } else {
-                    return "not a test error";
-                  }
+                  var tmp;
+                  tmp = e.RE_EXN_ID === TestError && e._1 === "some rejected value" ? "success" : "not a test error";
+                  return Promise.resolve(tmp);
                 })).then(function (msg) {
               Test.run([
                     [
                       "PromiseTest.res",
-                      180,
+                      185,
                       26,
                       45
                     ],
@@ -230,7 +233,7 @@ function testCatchFinally(param) {
                 }).then(function (v) {
                 return Promise.resolve(v);
               }), (function (param) {
-              
+              return Promise.resolve(undefined);
             })).finally(function (param) {
           wasCalled.contents = true;
           
@@ -238,7 +241,7 @@ function testCatchFinally(param) {
         Test.run([
               [
                 "PromiseTest.res",
-                202,
+                207,
                 26,
                 48
               ],
@@ -247,7 +250,7 @@ function testCatchFinally(param) {
         Test.run([
               [
                 "PromiseTest.res",
-                203,
+                208,
                 26,
                 59
               ],
@@ -271,7 +274,7 @@ function testResolveFinally(param) {
         Test.run([
               [
                 "PromiseTest.res",
-                220,
+                225,
                 26,
                 45
               ],
@@ -280,7 +283,7 @@ function testResolveFinally(param) {
         Test.run([
               [
                 "PromiseTest.res",
-                221,
+                226,
                 26,
                 59
               ],
@@ -353,7 +356,7 @@ function testParallel(param) {
               Test.run([
                     [
                       "PromiseTest.res",
-                      258,
+                      263,
                       26,
                       55
                     ],
@@ -381,7 +384,7 @@ function testRace(param) {
               Test.run([
                     [
                       "PromiseTest.res",
-                      277,
+                      282,
                       26,
                       44
                     ],
@@ -416,7 +419,7 @@ function testParallel2(param) {
               Test.run([
                     [
                       "PromiseTest.res",
-                      301,
+                      306,
                       26,
                       55
                     ],
@@ -462,7 +465,7 @@ function testParallel3(param) {
               Test.run([
                     [
                       "PromiseTest.res",
-                      326,
+                      331,
                       26,
                       55
                     ],
@@ -514,7 +517,7 @@ function testParallel4(param) {
               Test.run([
                     [
                       "PromiseTest.res",
-                      352,
+                      357,
                       26,
                       55
                     ],
@@ -572,7 +575,7 @@ function testParallel5(param) {
               Test.run([
                     [
                       "PromiseTest.res",
-                      379,
+                      384,
                       26,
                       55
                     ],
@@ -636,7 +639,7 @@ function testParallel6(param) {
               Test.run([
                     [
                       "PromiseTest.res",
-                      407,
+                      412,
                       26,
                       55
                     ],
