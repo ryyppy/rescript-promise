@@ -1,6 +1,6 @@
 {
   "name": "@ryyppy/rescript-promise",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "2020 proposal for new ReScript promise bindings",
   "main": "index.js",
   "scripts": {
