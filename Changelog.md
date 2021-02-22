@@ -1,5 +1,21 @@
 # master
 
+**Breaking**
+
+- `catch` was not aligned with `then` and didn't return a `t<'a>`. This change forces users to resolve a value within a `catch` callback.
+
+```diff
+Promise.resolve(1)
+-  ->catch(err => {
+-    ()
+-  })
++  ->catch(err => {
++    resolve()
++  })
+```
+
+**Note:** This also aligns with the previous `Js.Promise.catch_`.
+
 # v1.0
 
 **Breaking**

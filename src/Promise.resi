@@ -50,6 +50,7 @@ Promise.make((resolve, reject) => {
 })
 ->catch(e => {
   Js.log(\"Error occurred\")
+  resolve()
 })
 ->ignore
 ```
@@ -60,7 +61,7 @@ external make: ((@bs.uncurry (. 'a) => unit, (. 'e) => unit) => unit) => t<'a> =
 @ocaml.doc("
 [catch(promise, errorCallback)] registers an exception handler in a promise chain.
 The `errorCallback` receives an `exn` value that can later be refined into a JS error or ReScript
-error.
+error. The `errorCallback` needs to return a promise with the same type as the consumed promise.
 
 ```rescript
 open Promise
@@ -82,7 +83,7 @@ reject(SomeError(\"this is an error\"))
     | _ => \"Unexpected error occurred\"
   }
 
-  Error(msg)
+  Error(msg)->resolve
 })
 ->then(result => {
   switch result {
@@ -96,7 +97,7 @@ reject(SomeError(\"this is an error\"))
 In case you want to return another promise in your `callback`,
 consider using \`then\` instead.
 ")
-let catch: (t<'a>, exn => 'a) => t<'a>
+let catch: (t<'a>, exn => t<'a>) => t<'a>
 
 @ocaml.doc("
 [then(promise, callback)] returns a new promise based on the result of `promise`'s value. 
@@ -137,6 +138,7 @@ resolve(5)
 })
 ->catch(_ => {
   Js.log(\"Error handled\")
+  resolve()
 })
 ->finally(() => {
   Js.log(\"finally\")

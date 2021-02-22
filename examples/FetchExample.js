@@ -53,10 +53,10 @@ function login(email, password) {
                 } else {
                   msg = "Unexpected error occurred";
                 }
-                return {
-                        TAG: /* Error */1,
-                        _0: msg
-                      };
+                return Promise.resolve({
+                            TAG: /* Error */1,
+                            _0: msg
+                          });
               }));
 }
 
@@ -85,10 +85,10 @@ function getProducts(token, param) {
                 } else {
                   msg = "Unexpected error occurred";
                 }
-                return {
-                        TAG: /* Error */1,
-                        _0: msg
-                      };
+                return Promise.resolve({
+                            TAG: /* Error */1,
+                            _0: msg
+                          });
               }));
 }
 
@@ -126,7 +126,7 @@ $$Promise.$$catch(login("emma.wong@reqres.in", "pw").then(function (ret) {
         } else {
           console.log("Unknown error");
         }
-        
+        return Promise.resolve(undefined);
       }));
 
 exports.NodeFetchPolyfill = NodeFetchPolyfill;

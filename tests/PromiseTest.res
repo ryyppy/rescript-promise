@@ -64,6 +64,7 @@ module ThenChaining = {
       | _ => false
       }
       Test.run(__POS_OF__("then should have thrown an error"), ret, equal, true)
+      resolve()
     })
   }
 
@@ -83,6 +84,7 @@ module Rejection = {
     ->reject
     ->catch(e => {
       Test.run(__POS_OF__(cond), e, equal, TestError("oops"))
+      resolve()
     })
     ->ignore
   }
@@ -116,6 +118,7 @@ module Catching = {
       }
 
       Test.run(__POS_OF__("Should be a parser error with Unexpected token ."), success, equal, true)
+      resolve()
     })
   }
 
@@ -134,6 +137,7 @@ module Catching = {
       | _ => false
       }
       Test.run(__POS_OF__("Should be a TestError"), isTestErr, equal, true)
+      resolve()
     })
   }
 
@@ -156,6 +160,7 @@ module Catching = {
       | _ => false
       }
       Test.run(__POS_OF__("Should be some JS error"), isTestErr, equal, true)
+      resolve()
     })
   }
 
@@ -174,7 +179,7 @@ module Catching = {
       | TestError("some rejected value") => "success"
       | _ => "not a test error"
       }
-      s
+      resolve(s)
     })
     ->then(msg => {
       Test.run(__POS_OF__("Should be success"), msg, equal, "success")
@@ -193,7 +198,7 @@ module Catching = {
       v->resolve
     })
     ->catch(_ => {
-      ()
+      resolve()
     })
     ->finally(() => {
       wasCalled := true

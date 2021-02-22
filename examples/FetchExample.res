@@ -88,7 +88,7 @@ module Login = {
         }
       | _ => "Unexpected error occurred"
       }
-      Error(msg)
+      Error(msg)->resolve
     })
   }
 }
@@ -127,7 +127,7 @@ module Product = {
         }
       | _ => "Unexpected error occurred"
       }
-      Error(msg)
+      Error(msg)->resolve
     })
   }
 }
@@ -160,5 +160,6 @@ let _ = {
     | FailedRequest(msg) => Js.log("Operation failed! " ++ msg)
     | _ => Js.log("Unknown error")
     }
+    resolve()
   })
 }
