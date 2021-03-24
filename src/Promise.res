@@ -11,6 +11,9 @@ external resolve: 'a => t<'a> = "resolve"
 
 @bs.send external then: (t<'a>, @uncurry ('a => t<'b>)) => t<'b> = "then"
 
+@bs.send
+external thenResolve: (t<'a>, @uncurry ('a => 'b)) => t<'b> = "then"
+
 @bs.send external finally: (t<'a>, unit => unit) => t<'a> = "finally"
 
 @bs.scope("Promise") @bs.val

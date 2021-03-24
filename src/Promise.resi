@@ -30,7 +30,7 @@ external resolve: 'a => t<'a> = "resolve"
 external reject: exn => t<_> = "reject"
 
 @ocaml.doc("
-[make(callback)] creates a new Promise based on a `callback` that receives two
+`make(callback)` creates a new Promise based on a `callback` that receives two
 uncurried functions `resolve` and `reject` for defining the Promise's result.
 
 ```rescript
@@ -59,7 +59,7 @@ Promise.make((resolve, reject) => {
 external make: ((@bs.uncurry (. 'a) => unit, (. 'e) => unit) => unit) => t<'a> = "Promise"
 
 @ocaml.doc("
-[catch(promise, errorCallback)] registers an exception handler in a promise chain.
+`catch(promise, errorCallback)` registers an exception handler in a promise chain.
 The `errorCallback` receives an `exn` value that can later be refined into a JS error or ReScript
 error. The `errorCallback` needs to return a promise with the same type as the consumed promise.
 
@@ -94,13 +94,12 @@ reject(SomeError(\"this is an error\"))
 ->ignore // Ignore needed for side-effects
 ```
 
-In case you want to return another promise in your `callback`,
-consider using \`then\` instead.
+In case you want to return another promise in your `callback`, consider using \`then\` instead.
 ")
 let catch: (t<'a>, exn => t<'a>) => t<'a>
 
 @ocaml.doc("
-[then(promise, callback)] returns a new promise based on the result of `promise`'s value. 
+`then(promise, callback)` returns a new promise based on the result of `promise`'s value. 
 The `callback` needs to explicitly return a new promise via `resolve`.
 
 It is **not allowed** to resolve a nested promise (like `resolve(resolve(1))`).
@@ -119,6 +118,27 @@ Promise.resolve(5)
 ")
 @bs.send
 external then: (t<'a>, @uncurry ('a => t<'b>)) => t<'b> = "then"
+
+@ocaml.doc("
+`thenResolve(promise, callback)` converts an encapsulated value of a promise into another promise wrapped value. 
+
+It is **not allowed** to return a promise within the provided callback (e.g. `thenResolve(value => resolve(value))`).
+
+```rescript
+resolve(\"Anna\")
+->thenResolve(str => {
+  \"Hello \" ++ str
+})
+->thenResolve(str => {
+  Js.log(str)
+})
+->ignore // Ignore needed for side-effects
+```
+
+In case you want to return another promise in your `callback`, consider using \`then\` instead.
+")
+@bs.send
+external thenResolve: (t<'a>, @uncurry ('a => 'b)) => t<'b> = "then"
 
 @ocaml.doc("
 [finally(promise, callback)] is used to execute a function that is called no matter if a promise

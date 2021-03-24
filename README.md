@@ -13,6 +13,7 @@ This is a proposal for replacing the original `Js.Promise` binding that is shipp
 - `reject` for creating a rejected promise
 - `catch` for catching any JS or ReScript errors (all represented as an `exn` value)
 - `then` for chaining functions that return another promise
+- `thenResolve` for chaining functions that transform the value inside a promise
 - `all` and `race` for running promises concurrently
 - `finally` for arbitrary tasks after a promise has rejected / resolved
 - Globally accessible `Promise` module that doesn't collide with `Js.Promise`
@@ -24,8 +25,8 @@ This is a proposal for replacing the original `Js.Promise` binding that is shipp
 
 **Caveats:**
 
-- There is exactly one edge-case where returning a `Promise.t<Promise.t<'a>>` value within `then` is not runtime safe (but also quite nonsensical). Refer to the [Common Mistakes](#common-mistakes) section for details.
-- This edge-case shouldn't happen in day to day use, also, for those who have general concerns of runtime safetiness, should use a `catch` call in the end of each promise chain anyways
+- There are 2 edge-cases where returning a `Promise.t<Promise.t<'a>>` value within `then` / `thenResolve` is not runtime safe (but also quite rare in practise). Refer to the [Common Mistakes](#common-mistakes) section for details.
+- These edge-cases shouldn't happen in day to day use, also, for those with general concerns about runtime safetiness, it is recommended to use a `catch` call in the end of each promise chain to prevent runtime crashes anyways (just like in JS).
 
 ## Requirements
 
@@ -124,6 +125,23 @@ let queryUser = queryUser("u1")
   // comment 2
 
   resolve()
+})
+->ignore
+```
+
+You can also use `thenResolve` to chain a promise, and transform its nested value:
+
+```rescript
+open Promise
+
+let createNumPromise = (n) => resolve(n)
+
+createNumPromise(5)
+->thenResolve(num => {
+  num + 1
+})
+->thenResolve(num => {
+  Js.log(num)
 })
 ->ignore
 ```
@@ -329,6 +347,28 @@ resolve(1)
     Js.log("luckily, our mistake will be caught here");
     Js.log(e)
     // p.then is not a function
+    resolve()
+  })
+  ->ignore
+```
+
+**Don't return a `Promise.t<'a>` within a `thenResolve` callback:**
+
+```rescript
+open Promise
+resolve(1)
+  ->thenResolve((value: int) => {
+    // BAD: This will cause a Promise.t<Promise.t<'a>>
+    resolve(value)
+  })
+  ->thenResolve((p: Promise.t<int>) => {
+    // p is marked as a Promise, but it's actually an int
+    // so this code will fail
+    p->thenResolve((n) => Js.log(n))->ignore
+  })
+  ->catch((_) => {
+    Js.log("luckily, our mistake will be caught here");
+    // e: p.then is not a function
     resolve()
   })
   ->ignore
