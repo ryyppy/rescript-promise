@@ -366,7 +366,7 @@ resolve(1)
     // so this code will fail
     p->thenResolve((n) => Js.log(n))->ignore
   })
-  ->catch((_) => {
+  ->catch((e) => {
     Js.log("luckily, our mistake will be caught here");
     // e: p.then is not a function
     resolve()
