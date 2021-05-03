@@ -1,5 +1,7 @@
 # master
 
+# v2.1.0
+
 - Add the `thenResolve` function, which is essentially the `map` function we removed in v1, but with a better name (thanks @mrmurphy for the suggestion)
 
 # v2.0
