@@ -88,15 +88,58 @@ function testInvalidThen(param) {
               }));
 }
 
+function testThenResolve(param) {
+  return Promise.resolve(1).then(function (num) {
+                return num + 1 | 0;
+              }).then(function (ret) {
+              return Test.run([
+                          [
+                            "PromiseTest.res",
+                            79,
+                            26,
+                            39
+                          ],
+                          "Should be 2"
+                        ], ret, equal, 2);
+            });
+}
+
+function testInvalidThenResolve(param) {
+  return $$Promise.$$catch(Promise.resolve(1).then(function (num) {
+                    return Promise.resolve(num);
+                  }).then(function (p) {
+                  p.then(function (num) {
+                        return num + 1 | 0;
+                      });
+                  return Promise.resolve(undefined);
+                }), (function (e) {
+                var ret = e.RE_EXN_ID === $$Promise.JsError ? e._1.message === "p.then is not a function" : false;
+                Test.run([
+                      [
+                        "PromiseTest.res",
+                        105,
+                        26,
+                        60
+                      ],
+                      "then should have thrown an error"
+                    ], ret, equal, true);
+                return Promise.resolve(undefined);
+              }));
+}
+
 function runTests$1(param) {
   testThen(undefined);
   testInvalidThen(undefined);
+  testThenResolve(undefined);
+  testInvalidThenResolve(undefined);
   
 }
 
 var ThenChaining = {
   testThen: testThen,
   testInvalidThen: testInvalidThen,
+  testThenResolve: testThenResolve,
+  testInvalidThenResolve: testInvalidThenResolve,
   runTests: runTests$1
 };
 
@@ -108,7 +151,7 @@ function testExnRejection(param) {
           Test.run([
                 [
                   "PromiseTest.res",
-                  86,
+                  127,
                   26,
                   30
                 ],
@@ -147,7 +190,7 @@ function testExternalPromiseThrow(param) {
                 Test.run([
                       [
                         "PromiseTest.res",
-                        120,
+                        161,
                         26,
                         76
                       ],
@@ -169,7 +212,7 @@ function testExnThrow(param) {
                 Test.run([
                       [
                         "PromiseTest.res",
-                        139,
+                        180,
                         26,
                         49
                       ],
@@ -187,7 +230,7 @@ function testRaiseErrorThrow(param) {
                 Test.run([
                       [
                         "PromiseTest.res",
-                        162,
+                        203,
                         26,
                         51
                       ],
@@ -211,7 +254,7 @@ function thenAfterCatch(param) {
               Test.run([
                     [
                       "PromiseTest.res",
-                      185,
+                      226,
                       26,
                       45
                     ],
@@ -241,7 +284,7 @@ function testCatchFinally(param) {
         Test.run([
               [
                 "PromiseTest.res",
-                207,
+                248,
                 26,
                 48
               ],
@@ -250,7 +293,7 @@ function testCatchFinally(param) {
         Test.run([
               [
                 "PromiseTest.res",
-                208,
+                249,
                 26,
                 59
               ],
@@ -274,7 +317,7 @@ function testResolveFinally(param) {
         Test.run([
               [
                 "PromiseTest.res",
-                225,
+                266,
                 26,
                 45
               ],
@@ -283,7 +326,7 @@ function testResolveFinally(param) {
         Test.run([
               [
                 "PromiseTest.res",
-                226,
+                267,
                 26,
                 59
               ],
@@ -356,7 +399,7 @@ function testParallel(param) {
               Test.run([
                     [
                       "PromiseTest.res",
-                      263,
+                      304,
                       26,
                       55
                     ],
@@ -384,7 +427,7 @@ function testRace(param) {
               Test.run([
                     [
                       "PromiseTest.res",
-                      282,
+                      323,
                       26,
                       44
                     ],
@@ -419,7 +462,7 @@ function testParallel2(param) {
               Test.run([
                     [
                       "PromiseTest.res",
-                      306,
+                      347,
                       26,
                       55
                     ],
@@ -465,7 +508,7 @@ function testParallel3(param) {
               Test.run([
                     [
                       "PromiseTest.res",
-                      331,
+                      372,
                       26,
                       55
                     ],
@@ -517,7 +560,7 @@ function testParallel4(param) {
               Test.run([
                     [
                       "PromiseTest.res",
-                      357,
+                      398,
                       26,
                       55
                     ],
@@ -575,7 +618,7 @@ function testParallel5(param) {
               Test.run([
                     [
                       "PromiseTest.res",
-                      384,
+                      425,
                       26,
                       55
                     ],
@@ -639,7 +682,7 @@ function testParallel6(param) {
               Test.run([
                     [
                       "PromiseTest.res",
-                      412,
+                      453,
                       26,
                       55
                     ],

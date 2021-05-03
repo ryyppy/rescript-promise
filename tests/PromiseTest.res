@@ -68,9 +68,50 @@ module ThenChaining = {
     })
   }
 
+  let testThenResolve = () => {
+    open Promise
+
+    resolve(1)
+    ->thenResolve(num => {
+      num + 1
+    })
+    ->thenResolve(ret => {
+      Test.run(__POS_OF__("Should be 2"), ret, equal, 2)
+    })
+  }
+
+  let testInvalidThenResolve = () => {
+    open Promise
+
+    resolve(1)
+    ->thenResolve(num => {
+      // This is against the law
+      resolve(num)
+    })
+    ->then(p => {
+      // This will throw because of the auto-collapsing of promises
+      p
+      ->thenResolve(num => {
+        num + 1
+      })
+      ->ignore
+      resolve()
+    })
+    ->catch(e => {
+      let ret = switch e {
+      | JsError(m) => Js.Exn.message(m) === Some("p.then is not a function")
+      | _ => false
+      }
+      Test.run(__POS_OF__("then should have thrown an error"), ret, equal, true)
+      resolve()
+    })
+  }
+
   let runTests = () => {
     testThen()->ignore
     testInvalidThen()->ignore
+    testThenResolve()->ignore
+    testInvalidThenResolve()->ignore
   }
 }
 
