@@ -48,6 +48,12 @@ Add `@ryyppy/rescript-promise` as a dependency in your `bsconfig.json`:
 
 This will expose a global `Promise` module (don't worry, it will not mess with your existing `Js.Promise` code).
 
+### In case you are using @aantron/promise
+
+Unfortunately I didn't consider the case of mixing `@aantron/promise` with this particular binding, and both libraries bind to the globally accessible `Promise` module, so you can't mix them.
+
+In this case, copy `src/Promise.res` and `src/Promise.resi` into your bindings folder as `Promise2.res` and `Promise2.resi` and use it that way. Sorry for the inconvenience. At some point it will be part of the compiler stdlib, so hopefully this will be easy to migrate to later on.
+
 ## Examples
 
 - [examples/FetchExample.res](examples/FetchExample.res): Using the `fetch` api to login / query some data with a full promise chain scenario
