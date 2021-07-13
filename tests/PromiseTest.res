@@ -17,7 +17,7 @@ module Creation = {
       Test.run(__POS_OF__("Should resolve test"), str, equal, "test")
       resolve()
     })
-    ->ignore
+    ->ignorePromise
   }
 
   let runTests = () => {
@@ -55,7 +55,7 @@ module ThenChaining = {
         Test.run(__POS_OF__("Should be 2"), value, equal, 2)
         resolve()
       })
-      ->ignore
+      ->ignorePromise
       resolve()
     })
     ->catch(e => {
@@ -94,7 +94,7 @@ module ThenChaining = {
       ->thenResolve(num => {
         num + 1
       })
-      ->ignore
+      ->ignorePromise
       resolve()
     })
     ->catch(e => {
@@ -108,10 +108,10 @@ module ThenChaining = {
   }
 
   let runTests = () => {
-    testThen()->ignore
-    testInvalidThen()->ignore
-    testThenResolve()->ignore
-    testInvalidThenResolve()->ignore
+    testThen()->Promise.ignorePromise
+    testInvalidThen()->Promise.ignorePromise
+    testThenResolve()->Promise.ignorePromise
+    testInvalidThenResolve()->Promise.ignorePromise
   }
 }
 
@@ -249,7 +249,7 @@ module Catching = {
       Test.run(__POS_OF__("finally should have been called"), wasCalled.contents, equal, true)
       resolve()
     })
-    ->ignore
+    ->ignorePromise
   }
 
   let testResolveFinally = () => {
@@ -267,16 +267,16 @@ module Catching = {
       Test.run(__POS_OF__("finally should have been called"), wasCalled.contents, equal, true)
       resolve()
     })
-    ->ignore
+    ->ignorePromise
   }
 
   let runTests = () => {
-    testExternalPromiseThrow()->ignore
-    testExnThrow()->ignore
-    testRaiseErrorThrow()->ignore
-    thenAfterCatch()->ignore
-    testCatchFinally()->ignore
-    testResolveFinally()->ignore
+    testExternalPromiseThrow()->Promise.ignorePromise
+    testExnThrow()->Promise.ignorePromise
+    testRaiseErrorThrow()->Promise.ignorePromise
+    thenAfterCatch()->Promise.ignorePromise
+    testCatchFinally()
+    testResolveFinally()
   }
 }
 
