@@ -236,6 +236,6 @@ external all5: ((t<'a>, t<'b>, t<'c>, t<'d>, t<'e>)) => t<('a, 'b, 'c, 'd, 'e)> 
 external all6: ((t<'a>, t<'b>, t<'c>, t<'d>, t<'e>, t<'f>)) => t<('a, 'b, 'c, 'd, 'e, 'f)> = "all"
 
 @ocaml.doc("
-`Promise.ignorePromise` is a safe way to ignore a promise. If a value is anything else than a promise, it will raise a type error.
+`done` is a safe way to ignore a promise. If a value is anything else than a promise, it will raise a type error.
 ")
-external ignorePromise: Js.Promise.t<'a> => unit = "%ignore"
+external done: Js.Promise.t<'a> => unit = "%ignore"
