@@ -57,3 +57,5 @@ let catch = (promise, callback) => {
 
 @bs.scope("Promise") @bs.val
 external race: array<t<'a>> => t<'a> = "race"
+
+external done: Js.Promise.t<'a> => unit = "%ignore"

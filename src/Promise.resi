@@ -99,7 +99,7 @@ In case you want to return another promise in your `callback`, consider using \`
 let catch: (t<'a>, exn => t<'a>) => t<'a>
 
 @ocaml.doc("
-`then(promise, callback)` returns a new promise based on the result of `promise`'s value. 
+`then(promise, callback)` returns a new promise based on the result of `promise`'s value.
 The `callback` needs to explicitly return a new promise via `resolve`.
 
 It is **not allowed** to resolve a nested promise (like `resolve(resolve(1))`).
@@ -120,7 +120,7 @@ Promise.resolve(5)
 external then: (t<'a>, @uncurry ('a => t<'b>)) => t<'b> = "then"
 
 @ocaml.doc("
-`thenResolve(promise, callback)` converts an encapsulated value of a promise into another promise wrapped value. 
+`thenResolve(promise, callback)` converts an encapsulated value of a promise into another promise wrapped value.
 
 It is **not allowed** to return a promise within the provided callback (e.g. `thenResolve(value => resolve(value))`).
 
@@ -234,3 +234,8 @@ external all5: ((t<'a>, t<'b>, t<'c>, t<'d>, t<'e>)) => t<('a, 'b, 'c, 'd, 'e)> 
 @bs.scope("Promise")
 @bs.val
 external all6: ((t<'a>, t<'b>, t<'c>, t<'d>, t<'e>, t<'f>)) => t<('a, 'b, 'c, 'd, 'e, 'f)> = "all"
+
+@ocaml.doc("
+`done` is a safe way to ignore a promise. If a value is anything else than a promise, it will raise a type error.
+")
+external done: Js.Promise.t<'a> => unit = "%ignore"

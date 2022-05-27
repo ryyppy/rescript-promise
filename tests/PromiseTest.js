@@ -343,8 +343,7 @@ function runTests$3(param) {
   testRaiseErrorThrow(undefined);
   thenAfterCatch(undefined);
   testCatchFinally(undefined);
-  testResolveFinally(undefined);
-  
+  return testResolveFinally(undefined);
 }
 
 var Catching = {
