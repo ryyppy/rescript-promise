@@ -2,6 +2,7 @@
   "name": "@ryyppy/rescript-promise",
   "version": "2.1.0",
   "description": "2020 proposal for new ReScript promise bindings",
+  "homepage": "https://github.com/ryyppy/rescript-promise",
   "main": "index.js",
   "scripts": {
     "test": "node tests/PromiseTest.js",
