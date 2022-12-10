@@ -21,5 +21,9 @@
   "suffix": ".js",
   "warnings": {
     "error" : "+101"
+  },
+  "gentypeconfig": {
+    "language": "typescript",
+    "module": "commonjs"
   }
 }
