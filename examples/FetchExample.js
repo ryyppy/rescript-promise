@@ -2,9 +2,9 @@
 'use strict';
 
 var $$Promise = require("../src/Promise.js");
-var Belt_Array = require("bs-platform/lib/js/belt_Array.js");
+var Belt_Array = require("rescript/lib/js/belt_Array.js");
 var NodeFetch = require("node-fetch");
-var Caml_exceptions = require("bs-platform/lib/js/caml_exceptions.js");
+var Caml_exceptions = require("rescript/lib/js/caml_exceptions.js");
 
 globalThis.fetch = NodeFetch;
 
@@ -66,7 +66,7 @@ var Login = {
 
 function getProducts(token, param) {
   var params = {
-    Authorization: "Bearer " + token
+    Authorization: "Bearer " + token + ""
   };
   return $$Promise.$$catch(globalThis.fetch("https://reqres.in/api/products", params).then(function (res) {
                     return res.json();
@@ -96,7 +96,7 @@ var Product = {
   getProducts: getProducts
 };
 
-var FailedRequest = Caml_exceptions.create("FetchExample.FailedRequest");
+var FailedRequest = /* @__PURE__ */Caml_exceptions.create("FetchExample.FailedRequest");
 
 $$Promise.$$catch(login("emma.wong@reqres.in", "pw").then(function (ret) {
             if (ret.TAG !== /* Ok */0) {
@@ -112,8 +112,7 @@ $$Promise.$$catch(login("emma.wong@reqres.in", "pw").then(function (ret) {
           if (result.TAG === /* Ok */0) {
             console.log("\nAvailable Products:\n---");
             tmp = Belt_Array.forEach(result._0, (function (p) {
-                    console.log(String(p.id) + " - " + p.name);
-                    
+                    console.log("" + String(p.id) + " - " + p.name + "");
                   }));
           } else {
             console.log("Could not query products: " + result._0);

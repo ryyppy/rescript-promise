@@ -2,17 +2,17 @@
 'use strict';
 
 var Test = require("./Test.js");
-var Curry = require("bs-platform/lib/js/curry.js");
-var Js_exn = require("bs-platform/lib/js/js_exn.js");
+var Curry = require("rescript/lib/js/curry.js");
+var Js_exn = require("rescript/lib/js/js_exn.js");
 var $$Promise = require("../src/Promise.js");
-var Caml_obj = require("bs-platform/lib/js/caml_obj.js");
-var Caml_exceptions = require("bs-platform/lib/js/caml_exceptions.js");
+var Caml_obj = require("rescript/lib/js/caml_obj.js");
+var Caml_exceptions = require("rescript/lib/js/caml_exceptions.js");
 
-var TestError = Caml_exceptions.create("PromiseTest.TestError");
+var TestError = /* @__PURE__ */Caml_exceptions.create("PromiseTest.TestError");
 
 var fail = Js_exn.raiseError;
 
-var equal = Caml_obj.caml_equal;
+var equal = Caml_obj.equal;
 
 function resolveTest(param) {
   Promise.resolve("test").then(function (str) {
@@ -27,11 +27,10 @@ function resolveTest(param) {
             ], str, equal, "test");
         return Promise.resolve(undefined);
       });
-  
 }
 
 function runTests(param) {
-  return resolveTest(undefined);
+  resolveTest(undefined);
 }
 
 var Creation = {
@@ -92,15 +91,15 @@ function testThenResolve(param) {
   return Promise.resolve(1).then(function (num) {
                 return num + 1 | 0;
               }).then(function (ret) {
-              return Test.run([
-                          [
-                            "PromiseTest.res",
-                            79,
-                            26,
-                            39
-                          ],
-                          "Should be 2"
-                        ], ret, equal, 2);
+              Test.run([
+                    [
+                      "PromiseTest.res",
+                      79,
+                      26,
+                      39
+                    ],
+                    "Should be 2"
+                  ], ret, equal, 2);
             });
 }
 
@@ -132,7 +131,6 @@ function runTests$1(param) {
   testInvalidThen(undefined);
   testThenResolve(undefined);
   testInvalidThenResolve(undefined);
-  
 }
 
 var ThenChaining = {
@@ -162,12 +160,10 @@ function testExnRejection(param) {
               });
           return Promise.resolve(undefined);
         }));
-  
 }
 
 function runTests$2(param) {
   testExnRejection(undefined);
-  
 }
 
 var Rejection = {
@@ -186,7 +182,7 @@ function testExternalPromiseThrow(param) {
   return $$Promise.$$catch(Curry._1(asyncParseFail, undefined).then(function (param) {
                   return Promise.resolve(undefined);
                 }), (function (e) {
-                var success = e.RE_EXN_ID === $$Promise.JsError ? Caml_obj.caml_equal(e._1.message, "Unexpected token . in JSON at position 1") : false;
+                var success = e.RE_EXN_ID === $$Promise.JsError ? Caml_obj.equal(e._1.message, "Unexpected token . in JSON at position 1") : false;
                 Test.run([
                       [
                         "PromiseTest.res",
@@ -226,7 +222,7 @@ function testRaiseErrorThrow(param) {
   return $$Promise.$$catch(Promise.resolve(undefined).then(function (param) {
                   return Js_exn.raiseError("Some JS error");
                 }), (function (e) {
-                var isTestErr = e.RE_EXN_ID === $$Promise.JsError ? Caml_obj.caml_equal(e._1.message, "Some JS error") : false;
+                var isTestErr = e.RE_EXN_ID === $$Promise.JsError ? Caml_obj.equal(e._1.message, "Some JS error") : false;
                 Test.run([
                       [
                         "PromiseTest.res",
@@ -279,7 +275,6 @@ function testCatchFinally(param) {
               return Promise.resolve(undefined);
             })).finally(function (param) {
           wasCalled.contents = true;
-          
         }).then(function (v) {
         Test.run([
               [
@@ -301,7 +296,6 @@ function testCatchFinally(param) {
             ], wasCalled.contents, equal, true);
         return Promise.resolve(undefined);
       });
-  
 }
 
 function testResolveFinally(param) {
@@ -312,7 +306,6 @@ function testResolveFinally(param) {
             return Promise.resolve(v + 5 | 0);
           }).finally(function (param) {
           wasCalled.contents = true;
-          
         }).then(function (v) {
         Test.run([
               [
@@ -334,7 +327,6 @@ function testResolveFinally(param) {
             ], wasCalled.contents, equal, true);
         return Promise.resolve(undefined);
       });
-  
 }
 
 function runTests$3(param) {
@@ -344,7 +336,6 @@ function runTests$3(param) {
   thenAfterCatch(undefined);
   testCatchFinally(undefined);
   testResolveFinally(undefined);
-  
 }
 
 var Catching = {
@@ -366,12 +357,11 @@ function testParallel(param) {
     return new Promise((function (resolve, param) {
                   setTimeout((function (param) {
                           place.contents = place.contents + 1 | 0;
-                          return resolve([
-                                      place.contents,
-                                      msg
-                                    ]);
+                          resolve([
+                                place.contents,
+                                msg
+                              ]);
                         }), ms);
-                  
                 }));
   };
   var p1 = delayedMsg(1000, "is Anna");
@@ -413,9 +403,8 @@ function testRace(param) {
   var racer = function (ms, name) {
     return new Promise((function (resolve, param) {
                   setTimeout((function (param) {
-                          return resolve(name);
+                          resolve(name);
                         }), ms);
-                  
                 }));
   };
   var promises = [
@@ -445,12 +434,11 @@ function testParallel2(param) {
     return new Promise((function (resolve, param) {
                   setTimeout((function (param) {
                           place.contents = place.contents + 1 | 0;
-                          return resolve([
-                                      place.contents,
-                                      msg
-                                    ]);
+                          resolve([
+                                place.contents,
+                                msg
+                              ]);
                         }), ms);
-                  
                 }));
   };
   var p1 = delayedMsg(1000, "is Anna");
@@ -489,12 +477,11 @@ function testParallel3(param) {
     return new Promise((function (resolve, param) {
                   setTimeout((function (param) {
                           place.contents = place.contents + 1 | 0;
-                          return resolve([
-                                      place.contents,
-                                      msg
-                                    ]);
+                          resolve([
+                                place.contents,
+                                msg
+                              ]);
                         }), ms);
-                  
                 }));
   };
   var p1 = delayedMsg(1000, "is Anna");
@@ -539,12 +526,11 @@ function testParallel4(param) {
     return new Promise((function (resolve, param) {
                   setTimeout((function (param) {
                           place.contents = place.contents + 1 | 0;
-                          return resolve([
-                                      place.contents,
-                                      msg
-                                    ]);
+                          resolve([
+                                place.contents,
+                                msg
+                              ]);
                         }), ms);
-                  
                 }));
   };
   var p1 = delayedMsg(1500, "Anna");
@@ -595,12 +581,11 @@ function testParallel5(param) {
     return new Promise((function (resolve, param) {
                   setTimeout((function (param) {
                           place.contents = place.contents + 1 | 0;
-                          return resolve([
-                                      place.contents,
-                                      msg
-                                    ]);
+                          resolve([
+                                place.contents,
+                                msg
+                              ]);
                         }), ms);
-                  
                 }));
   };
   var p1 = delayedMsg(1500, "Anna");
@@ -657,12 +642,11 @@ function testParallel6(param) {
     return new Promise((function (resolve, param) {
                   setTimeout((function (param) {
                           place.contents = place.contents + 1 | 0;
-                          return resolve([
-                                      place.contents,
-                                      msg
-                                    ]);
+                          resolve([
+                                place.contents,
+                                msg
+                              ]);
                         }), ms);
-                  
                 }));
   };
   var p1 = delayedMsg(1500, "Anna");
@@ -725,7 +709,6 @@ function runTests$4(param) {
   testParallel4(undefined);
   testParallel5(undefined);
   testParallel6(undefined);
-  
 }
 
 var Concurrently = {
